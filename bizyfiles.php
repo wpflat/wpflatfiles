@@ -2,7 +2,7 @@
 /**
  * Plugin Name: BizyFiles
  * Description: A file manager that looks like File Explorer: folders, versions, previews, sharing, and folder-level access for people and groups. Works in the app and on the front end for your users. Needs BizyCore.
- * Version: 0.1.0
+ * Version: 0.2.0
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Author: Digitalzooks
@@ -12,7 +12,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'BIZYFILES_VERSION', '0.1.0' );
+define( 'BIZYFILES_VERSION', '0.2.0' );
 define( 'BIZYFILES_FILE', __FILE__ );
 define( 'BIZYFILES_DIR', plugin_dir_path( __FILE__ ) );
 define( 'BIZYFILES_URL', plugin_dir_url( __FILE__ ) );
