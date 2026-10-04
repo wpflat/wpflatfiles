@@ -38,7 +38,7 @@ class Module {
 				'route'         => '/files',
 				'routes'        => array( 'files' ),
 				'cap'           => 'bizyfiles_use',
-				'caps'          => array( 'bizyfiles_use', 'bizyfiles_manage' ),
+				'caps'          => array( 'bizyfiles_use', 'bizyfiles_view_all', 'bizyfiles_upload', 'bizyfiles_edit', 'bizyfiles_manage' ),
 				'resources'     => array(),
 				'tables'        => array_map( function ( $t ) {
 					return 'bizyfiles_' . $t;
@@ -54,7 +54,10 @@ class Module {
 				'public_paths'  => array( 'share', Front_Page::slug() ),
 				'public_params' => array( 'bd_file', 'bd_folder', 'bd_as', 'bd_as_user' ),
 				'roles'         => array(
-					'bizy_files_team' => array( 'label' => 'Bizy Files Team', 'desc' => 'Manages every folder, file and who can see what.', 'caps' => array( 'bizyfiles_use', 'bizyfiles_manage' ) ),
+					'bizy_files_team'       => array( 'label' => 'Bizy Files Admin', 'desc' => 'Full control of Files: every folder, who can see what, the recycle bin. Also opens the Bizy app.', 'caps' => array( 'bizyfiles_use', 'bizyfiles_view_all', 'bizyfiles_upload', 'bizyfiles_edit', 'bizyfiles_manage' ) ),
+					'bizy_file_manager'     => array( 'label' => 'Bizy File Manager', 'desc' => 'Can create, rename, move, delete and upload folders and files in every folder, and share files. Cannot change who has access. Uses the front-end Files page.', 'caps' => array( 'bizyfiles_use', 'bizyfiles_view_all', 'bizyfiles_upload', 'bizyfiles_edit' ), 'staff' => false ),
+					'bizy_file_contributor' => array( 'label' => 'Bizy File Contributor', 'desc' => 'Can see every folder and add files to any of them. Cannot delete, rename or create folders. Uses the front-end Files page.', 'caps' => array( 'bizyfiles_use', 'bizyfiles_view_all', 'bizyfiles_upload' ), 'staff' => false ),
+					'bizy_file_viewer'      => array( 'label' => 'Bizy File Viewer', 'desc' => 'Can only view and download all folders and files. Uses the front-end Files page.', 'caps' => array( 'bizyfiles_use', 'bizyfiles_view_all' ), 'staff' => false ),
 				),
 				'client_manager_caps' => array( 'bizyfiles_use' ),
 				'team_manager_caps'   => array( 'bizyfiles_use' ),

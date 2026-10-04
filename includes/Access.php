@@ -52,6 +52,27 @@ class Access {
 		return ( $id && current_user_can( 'manage_bizycore' ) && current_user_can( 'bizycore_clients' ) ) ? $id : 0;
 	}
 
+	/**
+	 * What a person's capabilities allow in every folder: 0 none, 1 view everything (bizyfiles_view_all), 2 also add files
+	 * (bizyfiles_upload), 3 also create, rename, move and delete (bizyfiles_edit), 4 everything (bizyfiles_manage or an administrator).
+	 * Each higher capability includes the lower ones, so a role only needs its own.
+	 */
+	public static function global_level( $user_id ) {
+		$u = $user_id ? get_userdata( (int) $user_id ) : null;
+		if ( ! $u ) {
+			return 0;
+		}
+		if ( user_can( $u, 'manage_options' ) || user_can( $u, 'bizyfiles_manage' ) ) {
+			return 4;
+		}
+		foreach ( array( 3 => 'bizyfiles_edit', 2 => 'bizyfiles_upload', 1 => 'bizyfiles_view_all' ) as $lv => $cap ) {
+			if ( user_can( $u, $cap ) ) {
+				return $lv;
+			}
+		}
+		return 0;
+	}
+
 	/** A user id staff are previewing the library as (header X-Bizy-As-User), or 0. */
 	public static function simulated_user() {
 		$id = 0;
@@ -67,12 +88,12 @@ class Access {
 	public static function viewer( $user_id = 0 ) {
 		$as = $user_id ? 0 : self::simulated_client();
 		if ( $as ) {
-			return array( 'user' => get_current_user_id(), 'staff' => false, 'manager' => false, 'client_ids' => array( $as ), 'group_ids' => Groups::for_clients( array( $as ) ), 'simulated' => true );
+			return array( 'user' => get_current_user_id(), 'staff' => false, 'manager' => false, 'global' => 0, 'client_ids' => array( $as ), 'group_ids' => Groups::for_clients( array( $as ) ), 'simulated' => true );
 		}
 		$as_user = $user_id ? 0 : self::simulated_user();
 		if ( $as_user ) { // staff previewing as one person: what that person's roles and client links would give
 			$clients = array_map( 'intval', Portal_Users::client_ids( $as_user ) );
-			return array( 'user' => $as_user, 'staff' => false, 'manager' => false, 'client_ids' => $clients, 'group_ids' => array_values( array_unique( array_merge( Groups::for_clients( $clients ), Groups::for_user( $as_user ) ) ) ), 'simulated' => true );
+			return array( 'user' => $as_user, 'staff' => false, 'manager' => false, 'global' => self::global_level( $as_user ) < 4 ? self::global_level( $as_user ) : 3, 'client_ids' => $clients, 'group_ids' => array_values( array_unique( array_merge( Groups::for_clients( $clients ), Groups::for_user( $as_user ) ) ) ), 'simulated' => true );
 		}
 		$user_id = $user_id ? (int) $user_id : get_current_user_id();
 		$u       = $user_id ? get_userdata( $user_id ) : null;
@@ -83,6 +104,7 @@ class Access {
 			'user'       => $user_id,
 			'staff'      => (bool) $staff,
 			'manager'    => (bool) $mgr,
+			'global'     => self::global_level( $user_id ),
 			'client_ids' => $clients,
 			'group_ids'  => array_values( array_unique( array_merge( Groups::for_clients( $clients ), $user_id ? Groups::for_user( $user_id ) : array() ) ) ), // hand-picked clients' groups + groups tied to the roles the person holds now
 			'simulated'  => false,
@@ -95,6 +117,9 @@ class Access {
 			return false;
 		}
 		$v = self::viewer();
+		if ( ! empty( $v['global'] ) ) {
+			return true;
+		}
 		if ( $v['staff'] ) {
 			return $v['manager'] || current_user_can( 'bizyfiles_use' ) || ! empty( $v['group_ids'] );
 		}
@@ -182,7 +207,7 @@ class Access {
 		if ( ! self::folder( $folder_id ) ) {
 			return 0;
 		}
-		$best = 0;
+		$best = isset( $v['global'] ) ? min( 3, (int) $v['global'] ) : 0; // a role's rights apply in every folder, but never reach "manage" (who has access) by themselves
 		foreach ( self::rules_of( self::definer( (int) $folder_id ) ) as $r ) {
 			if ( self::matches( $r, $v ) ) {
 				$best = max( $best, self::LEVELS[ $r['level'] ] ?? 1 );

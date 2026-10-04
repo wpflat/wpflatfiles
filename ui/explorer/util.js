@@ -109,13 +109,15 @@ export const FOLDER_COLORS = [
 ];
 export const CLASSROOM_COLORS = [ '#f97316', '#3b82f6', '#22c55e', '#ec4899', '#8b5cf6', '#14b8a6', '#ef4444', '#f5b83d' ];
 
-export const LEVELS = [ 'view', 'upload', 'edit', 'manage' ];
-export const LEVEL_LABEL = { view: 'View', upload: 'Add files', edit: 'Edit', manage: 'Manage' };
+export const LEVELS = [ 'view', 'edit', 'upload', 'manage' ];
+export const LEVELS_MAIN = [ 'view', 'edit' ];
+export const LEVELS_MORE = [ 'upload', 'manage' ];
+export const LEVEL_LABEL = { view: 'Read only', edit: 'Read & write', upload: 'Add files only', manage: 'Full control' };
 export const LEVEL_HELP = {
-	view: 'See and download',
-	upload: 'Also add files',
-	edit: 'Also create folders, rename, move and delete',
-	manage: 'Also change who has access',
+	view: 'can see and download',
+	edit: 'can add, create, rename, move and delete',
+	upload: 'can add files but not change or delete',
+	manage: 'also decides who has access',
 };
 
 const KIND_EXT = {

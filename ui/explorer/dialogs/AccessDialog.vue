@@ -2,7 +2,7 @@
 import { computed, inject, onMounted, ref, watch } from 'vue';
 import Modal from '../components/Modal.vue';
 import Icon from '../components/Icon.vue';
-import { LEVELS, LEVEL_HELP, LEVEL_LABEL, debounce } from '../util';
+import { LEVELS, LEVELS_MAIN, LEVELS_MORE, LEVEL_HELP, LEVEL_LABEL, debounce } from '../util';
 
 /**
  * Who can open this folder. "Use the same access as the parent folder", or a list of rules: the team, all users,
@@ -109,7 +109,8 @@ const save = async () => {
 						<span class="fx-rule__ic"><Icon :name="r.type === 'users' || r.type === 'client' ? 'cursor' : 'people'" :size="15" /></span>
 						<span class="fx-rule__n"><strong>{{ nameOf( r ) }}</strong><small>{{ r.type === 'group' || r.type === 'client' ? typeLabel( r.type ) : '' }}</small><span v-if="r.type === 'group' && r.roles && r.roles.length" class="fx-rolebadge" title="Everyone with this role is included">{{ roleText( r.roles ) }}</span></span>
 						<select v-model="r.level" class="fx-select" :aria-label="'Access level for ' + nameOf( r )">
-							<option v-for="l in LEVELS" :key="l" :value="l">{{ LEVEL_LABEL[ l ] }}</option>
+							<option v-for="l in LEVELS_MAIN" :key="l" :value="l">{{ LEVEL_LABEL[ l ] }}</option>
+								<optgroup label="More…"><option v-for="l in LEVELS_MORE" :key="l" :value="l">{{ LEVEL_LABEL[ l ] }}</option></optgroup>
 						</select>
 						<button type="button" class="fx-iconbtn" :aria-label="'Remove ' + nameOf( r )" @click="remove( i )"><Icon name="x" :size="15" /></button>
 					</li>
@@ -124,7 +125,8 @@ const save = async () => {
 					</label>
 					<label class="fx-field"><span>Can</span>
 						<select v-model="addLevel" aria-label="Access level to give">
-							<option v-for="l in LEVELS" :key="l" :value="l">{{ LEVEL_LABEL[ l ] }}</option>
+							<option v-for="l in LEVELS_MAIN" :key="l" :value="l">{{ LEVEL_LABEL[ l ] }}</option>
+								<optgroup label="More…"><option v-for="l in LEVELS_MORE" :key="l" :value="l">{{ LEVEL_LABEL[ l ] }}</option></optgroup>
 						</select>
 					</label>
 					<div v-if="! picking" class="fx-field fx-field--btn"><button type="button" class="fx-secondary" :disabled="has( adding, 0 )" @click="addSimple"><Icon name="plus" :size="14" /> Add</button></div>

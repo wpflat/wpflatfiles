@@ -147,6 +147,7 @@ class Routes {
 			'users_can_upload' => (bool) $s['users_can_upload'],
 			'staff'          => $v['staff'],
 			'manager'        => $v['manager'],
+			'global_level'   => (int) ( $v['global'] ?? 0 ),
 			'simulated'      => ! empty( $v['simulated'] ),
 			'user'           => $me->display_name,
 			'allowed'        => Store::ALLOWED,
@@ -229,7 +230,7 @@ class Routes {
 			}
 		} elseif ( 0 === $fid ) {
 			$folders = Access::entry_points( $v );
-			$can['create_folder'] = $v['manager'];
+			$can['create_folder'] = self::may_top( $v );
 		} else {
 			if ( Access::level( $fid, $v ) < 1 ) {
 				return self::denied();
@@ -237,7 +238,7 @@ class Routes {
 			$folder  = Access::folder( $fid );
 			$lv      = Access::level( $fid, $v );
 			$can     = array(
-				'upload'        => $lv >= Access::LEVELS['upload'] && ( $v['staff'] || Settings::get( 'users_can_upload' ) ),
+				'upload'        => $lv >= Access::LEVELS['upload'] && ( $v['staff'] || Settings::get( 'users_can_upload' ) || (int) ( $v['global'] ?? 0 ) >= Access::LEVELS['upload'] ),
 				'edit'          => $lv >= Access::LEVELS['edit'],
 				'manage'        => $lv >= Access::LEVELS['manage'],
 				'create_folder' => $lv >= Access::LEVELS['edit'],
@@ -298,10 +299,15 @@ class Routes {
 
 	/* ───────────────────────── Folders ───────────────────────── */
 
+	/** May this person create or remove top-level folders? Managers, and anyone whose role lets them create and delete everywhere. */
+	private static function may_top( array $v ) {
+		return ! empty( $v['manager'] ) || ( isset( $v['global'] ) && (int) $v['global'] >= Access::LEVELS['edit'] );
+	}
+
 	public static function folder_create( \WP_REST_Request $r ) {
 		$v      = Access::viewer();
 		$parent = (int) $r->get_param( 'parent_id' );
-		if ( ( $parent && ! Access::can( $parent, 'edit', $v ) ) || ( ! $parent && ! $v['manager'] ) ) {
+		if ( ( $parent && ! Access::can( $parent, 'edit', $v ) ) || ( ! $parent && ! self::may_top( $v ) ) ) {
 			return self::denied();
 		}
 		$res = Store::create_folder( $parent, (string) $r->get_param( 'name' ), array( 'color' => (string) $r->get_param( 'color' ), 'description' => (string) $r->get_param( 'description' ) ) );
@@ -323,7 +329,7 @@ class Routes {
 		$in = array_intersect_key( (array) $r->get_json_params(), array_flip( array( 'name', 'description', 'color', 'parent_id' ) ) );
 		if ( array_key_exists( 'parent_id', $in ) ) {
 			$np = (int) $in['parent_id'];
-			if ( ( $np && ! Access::can( $np, 'edit', $v ) ) || ( ! $np && ! $v['manager'] ) ) {
+			if ( ( $np && ! Access::can( $np, 'edit', $v ) ) || ( ! $np && ! self::may_top( $v ) ) ) {
 				return self::denied();
 			}
 		}
@@ -335,7 +341,7 @@ class Routes {
 		$v  = Access::viewer();
 		$id = (int) $r['id'];
 		$f  = Access::folder( $id );
-		if ( ! $f || ! Access::can( $id, 'edit', $v ) || ( 0 === $f['parent_id'] && ! $v['manager'] ) ) {
+		if ( ! $f || ! Access::can( $id, 'edit', $v ) || ( 0 === $f['parent_id'] && ! self::may_top( $v ) ) ) {
 			return self::denied();
 		}
 		return self::out( Store::trash_folder( $id ) ? array( 'ok' => true ) : new \WP_Error( 'bizyfiles_db', 'Could not delete the folder.' ) );
@@ -346,7 +352,7 @@ class Routes {
 		$id   = (int) $r['id'];
 		$body = (array) $r->get_json_params();
 		$to   = isset( $body['parent_id'] ) ? (int) $body['parent_id'] : 0;
-		if ( ! Access::can( $id, 'view', $v ) || ( $to && ! Access::can( $to, 'edit', $v ) ) || ( ! $to && ! $v['manager'] ) ) {
+		if ( ! Access::can( $id, 'view', $v ) || ( $to && ! Access::can( $to, 'edit', $v ) ) || ( ! $to && ! self::may_top( $v ) ) ) {
 			return self::denied();
 		}
 		$res = Store::copy_folder( $id, $to, $v );
@@ -395,7 +401,7 @@ class Routes {
 
 	private static function may_upload( $folder_id, $new_version = false ) {
 		$v = Access::viewer();
-		if ( ! $v['staff'] && ! Settings::get( 'users_can_upload' ) ) {
+		if ( ! $v['staff'] && ! Settings::get( 'users_can_upload' ) && (int) ( $v['global'] ?? 0 ) < Access::LEVELS['upload'] ) { // the switch is for users; a File Contributor/Manager role always may
 			return false;
 		}
 		return Access::can( (int) $folder_id, $new_version ? 'edit' : 'upload', $v );

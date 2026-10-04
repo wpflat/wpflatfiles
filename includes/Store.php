@@ -566,7 +566,7 @@ class Store {
 		if ( ! $viewer['manager'] ) {
 			// Others see the bin only for folders they manage (the folder may itself be gone, so check its nearest living ancestor).
 			$out = array_values( array_filter( $out, function ( $i ) use ( $viewer ) {
-				return $i['parent_id'] && Access::level( $i['parent_id'], $viewer ) >= Access::LEVELS['manage'];
+				return ( $i['parent_id'] ? Access::level( $i['parent_id'], $viewer ) : ( isset( $viewer['global'] ) ? (int) $viewer['global'] : 0 ) ) >= Access::LEVELS['edit']; // whoever may delete it may bring it back
 			} ) );
 		}
 		usort( $out, function ( $a, $b ) {
