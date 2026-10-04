@@ -11,7 +11,7 @@ class Store {
 
 	/** Extensions that may be uploaded. Nothing that can run on the server, and no pages that could run script in the browser. */
 	const ALLOWED = array(
-		'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp', 'rtf', 'txt', 'md', 'csv', 'json', 'xml', 'epub',
+		'pdf', 'doc', 'docx', 'docm', 'xls', 'xlsx', 'xlsm', 'ppt', 'pptx', 'pptm', 'pps', 'ppsx', 'ppsm', 'pot', 'potx', 'odt', 'ods', 'odp', 'rtf', 'txt', 'md', 'csv', 'json', 'xml', 'epub',
 		'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'ico', 'heic', 'tif', 'tiff', 'psd', 'ai', 'eps',
 		'mp3', 'm4a', 'wav', 'ogg', 'oga', 'flac', 'aac', 'opus',
 		'mp4', 'm4v', 'mov', 'webm', 'mkv', 'avi', 'ogv', 'mpg', 'mpeg',
@@ -67,9 +67,9 @@ class Store {
 			'video'   => array( 'mp4', 'm4v', 'mov', 'webm', 'mkv', 'avi', 'ogv', 'mpg', 'mpeg' ),
 			'audio'   => array( 'mp3', 'm4a', 'wav', 'ogg', 'oga', 'flac', 'aac', 'opus' ),
 			'pdf'     => array( 'pdf' ),
-			'doc'     => array( 'doc', 'docx', 'odt', 'rtf', 'pages', 'epub' ),
-			'sheet'   => array( 'xls', 'xlsx', 'ods', 'csv', 'numbers' ),
-			'slides'  => array( 'ppt', 'pptx', 'odp', 'key' ),
+			'doc'     => array( 'doc', 'docx', 'docm', 'odt', 'rtf', 'pages', 'epub' ),
+			'sheet'   => array( 'xls', 'xlsx', 'xlsm', 'ods', 'csv', 'numbers' ),
+			'slides'  => array( 'ppt', 'pptx', 'pptm', 'pps', 'ppsx', 'ppsm', 'pot', 'potx', 'odp', 'key' ),
 			'text'    => array( 'txt', 'md', 'json', 'xml' ),
 			'archive' => array( 'zip', '7z', 'rar', 'gz', 'tar' ),
 		);
