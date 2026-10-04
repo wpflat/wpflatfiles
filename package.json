@@ -1,6 +1,6 @@
 {
   "name": "bizyfiles",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "description": "A File Explorer-style file manager for the Bizy suite: six themes, folders, versions, previews, share links, a recycle bin, chunked uploads, links to externally hosted video, and access per folder for people and groups. Works in the app and on the front end for your users.",
