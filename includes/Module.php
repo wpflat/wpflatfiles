@@ -52,6 +52,7 @@ class Module {
 				),
 				'file_kinds'    => array( 'files' ),
 				'public_paths'  => array( 'share', Front_Page::slug() ),
+				'front'         => array( 'url' => function () { return Settings::get( 'front_enabled' ) ? Front_Page::url() : ''; } ),
 				'public_params' => array( 'bd_file', 'bd_folder', 'bd_as', 'bd_as_user' ),
 				'roles'         => array(
 					'bizy_files_team'       => array( 'label' => 'Bizy Files Admin', 'desc' => 'Full control of Files: every folder, who can see what, the recycle bin. Also opens the Bizy app.', 'caps' => array( 'bizyfiles_use', 'bizyfiles_view_all', 'bizyfiles_upload', 'bizyfiles_edit', 'bizyfiles_manage' ) ),
