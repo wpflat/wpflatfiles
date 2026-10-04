@@ -37,7 +37,7 @@ onMounted( async () => {
 		inherit.value = !! r.inherit;
 		topLevel.value = !! r.top_level;
 		from.value = r.from || null;
-		rules.value = ( r.rules || [] ).map( ( x ) => ( { type: x.type, id: Number( x.id ) || 0, level: x.level, name: x.name || '' } ) );
+		rules.value = ( r.rules || [] ).map( ( x ) => ( { type: x.type, id: Number( x.id ) || 0, level: x.level, name: x.name || '', roles: x.roles || [] } ) );
 	} catch ( e ) {
 		error.value = e.message;
 	} finally {
@@ -64,13 +64,14 @@ watch( adding, () => {
 	if ( picking.value ) search();
 } );
 const has = ( type, id ) => rules.value.some( ( r ) => r.type === type && r.id === id );
-const add = ( type, id, name ) => {
+const add = ( type, id, name, roles = [] ) => {
 	if ( has( type, id ) ) return;
-	rules.value.push( { type, id, level: addLevel.value, name } );
+	rules.value.push( { type, id, level: addLevel.value, name, roles } );
 	if ( inherit.value ) inherit.value = false;
 };
 const addSimple = () => add( adding.value, 0, typeLabel( adding.value ) );
 const remove = ( i ) => rules.value.splice( i, 1 );
+const roleText = ( roles ) => ( roles && roles.length ? 'role: ' + roles.join( ', ' ) : '' );
 const nameOf = ( r ) => ( r.type === 'team' || r.type === 'users' ? typeLabel( r.type ) : r.name || '#' + r.id );
 
 const save = async () => {
@@ -106,7 +107,7 @@ const save = async () => {
 				<ul class="fx-rules">
 					<li v-for="( r, i ) in rules" :key="r.type + r.id" class="fx-rule">
 						<span class="fx-rule__ic"><Icon :name="r.type === 'users' || r.type === 'client' ? 'cursor' : 'people'" :size="15" /></span>
-						<span class="fx-rule__n"><strong>{{ nameOf( r ) }}</strong><small>{{ r.type === 'group' || r.type === 'client' ? typeLabel( r.type ) : '' }}</small></span>
+						<span class="fx-rule__n"><strong>{{ nameOf( r ) }}</strong><small>{{ r.type === 'group' || r.type === 'client' ? typeLabel( r.type ) : '' }}</small><span v-if="r.type === 'group' && r.roles && r.roles.length" class="fx-rolebadge" title="Everyone with this role is included">{{ roleText( r.roles ) }}</span></span>
 						<select v-model="r.level" class="fx-select" :aria-label="'Access level for ' + nameOf( r )">
 							<option v-for="l in LEVELS" :key="l" :value="l">{{ LEVEL_LABEL[ l ] }}</option>
 						</select>
@@ -134,8 +135,8 @@ const save = async () => {
 						<li v-if="searching" class="fx-note">Searching…</li>
 						<li v-else-if="! found.length" class="fx-note">Nothing found.</li>
 						<li v-for="f in found" :key="f.id">
-							<button type="button" class="fx-picker__item" role="option" :aria-selected="String( has( adding, f.id ) )" :disabled="has( adding, f.id )" @click="add( adding, f.id, f.name )">
-								<span>{{ f.name }}</span><Icon v-if="has( adding, f.id )" name="check" :size="14" /><Icon v-else name="plus" :size="14" />
+							<button type="button" class="fx-picker__item" role="option" :aria-selected="String( has( adding, f.id ) )" :disabled="has( adding, f.id )" @click="add( adding, f.id, f.name, f.roles )">
+								<span>{{ f.name }}</span><span v-if="f.roles && f.roles.length" class="fx-rolebadge" title="Everyone with this role is included">{{ roleText( f.roles ) }}</span><Icon v-if="has( adding, f.id )" name="check" :size="14" /><Icon v-else name="plus" :size="14" />
 							</button>
 						</li>
 					</ul>

@@ -1,9 +1,15 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue';
-import { api, errorMessage, ElMessage } from '../core';
+import { computed } from 'vue';
+import { api, errorMessage, ElMessage, store, sdk } from '../core';
 
 /** File Explorer settings: the default look, upload limits, the Recycle Bin. Used by /files/settings and by the Settings page tab. */
-const form = reactive( { theme: 'win11', theme_switch: true, users_can_upload: true, max_mb: 500, chunk_mb: 4, trash_days: 30, default_view: 'details' } );
+const form = reactive( { theme: 'win11', theme_switch: true, users_can_upload: true, max_mb: 500, chunk_mb: 4, trash_days: 30, default_view: 'details', front_enabled: false, front_slug: 'files' } );
+const frontUrl = ref( '' );
+const home = computed( () => String( ( store && store.homeUrl ) || '' ).replace( /\/+$/, '' ) );
+const slug = computed( () => String( form.front_slug || '' ).trim().replace( /^\/+|\/+$/g, '' ) );
+const note = computed( () => sdk.fmt( 'People with a {client} record also get Files in their portal. People who have a linked role instead (teachers and so on) sign in here.' ) );
+const preview = computed( () => home.value + '/' + ( slug.value || 'files' ) + '/' );
 const themes = ref( {} );
 const loaded = ref( false );
 const saving = ref( false );
@@ -14,6 +20,7 @@ onMounted( async () => {
 		const [ s, c ] = await Promise.all( [ api.getPath( 'fm/settings' ), api.getPath( 'fm/config' ) ] );
 		Object.assign( form, s );
 		themes.value = c.themes || {};
+		frontUrl.value = c.front_url || '';
 		loaded.value = true;
 	} catch ( e ) {
 		ElMessage.error( errorMessage( e ) );
@@ -23,6 +30,11 @@ const save = async () => {
 	saving.value = true;
 	try {
 		Object.assign( form, await api.post( 'fm/settings', { ...form } ) );
+		try {
+			frontUrl.value = ( await api.getPath( 'fm/config' ) ).front_url || '';
+		} catch ( e ) {
+			frontUrl.value = '';
+		}
 		ElMessage.success( 'File explorer settings saved' );
 	} catch ( e ) {
 		ElMessage.error( errorMessage( e ) );
@@ -69,6 +81,20 @@ const save = async () => {
 					<el-input-number v-model="form.trash_days" :min="0" :max="3650" controls-position="right" />
 					<div class="bd-help">After this time the Recycle Bin empties itself. 0 keeps items until someone empties it.</div>
 				</el-form-item>
+			</el-form>
+		</el-card>
+		<el-card shadow="never" class="bd-mb">
+			<template #header><div class="bd-widget__head"><span>Front-end page</span></div></template>
+			<el-form label-position="top" style="max-width: 640px" @submit.prevent>
+				<el-form-item>
+					<el-switch v-model="form.front_enabled" active-text="Let anyone signed in who has access open Files at their own page" />
+				</el-form-item>
+				<el-form-item label="Page address">
+					<el-input v-model="form.front_slug" :disabled="! form.front_enabled" placeholder="files" style="max-width: 320px" aria-label="Page address" />
+					<div class="bd-help">Address: <code class="bd-front-preview">{{ preview }}</code></div>
+				</el-form-item>
+				<p class="bd-help">{{ note }}</p>
+				<p v-if="frontUrl"><a class="bd-link" :href="frontUrl" target="_blank" rel="noopener">Open page</a></p>
 			</el-form>
 		</el-card>
 		<el-button type="primary" :loading="saving" @click="save">Save settings</el-button>

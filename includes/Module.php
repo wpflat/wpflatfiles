@@ -22,6 +22,7 @@ class Module {
 		Demo::init();
 		if ( Registry::enabled( 'files' ) || ! did_action( 'bizycore_ready' ) ) {
 			Streamer::init();
+			Front_Page::init();
 		}
 	}
 
@@ -50,8 +51,8 @@ class Module {
 					'bizyfiles_shares'   => array( 'file_id' => 'bizyfiles_files' ),
 				),
 				'file_kinds'    => array( 'files' ),
-				'public_paths'  => array( 'share' ),
-				'public_params' => array( 'bd_file', 'bd_folder', 'bd_as' ),
+				'public_paths'  => array( 'share', Front_Page::slug() ),
+				'public_params' => array( 'bd_file', 'bd_folder', 'bd_as', 'bd_as_user' ),
 				'roles'         => array(
 					'bizy_files_team' => array( 'label' => 'Bizy Files Team', 'desc' => 'Manages every folder, file and who can see what.', 'caps' => array( 'bizyfiles_use', 'bizyfiles_manage' ) ),
 				),

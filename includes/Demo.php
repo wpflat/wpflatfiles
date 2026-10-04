@@ -128,6 +128,11 @@ class Demo {
 		$gallery   = self::folder( 0, 'Gallery', 0, array( $team, array( 'users', 0, 'view' ) ), '#db2777' );
 		$staff     = self::folder( 0, 'Staff Only', 0, array( $team ), '#6b7280' );
 		self::folder( $staff, 'Exam Papers', 1, array() );
+		if ( ! empty( $ctx['role_group'] ) ) { // shared with everyone who holds the sample Teacher role
+			$room = self::folder( 0, 'Teachers Room', 0, array( $team, array( 'group', $ctx['role_group'], 'edit' ) ), '#7c3aed' );
+			self::file( $room, 'Marking guide.pdf', self::pdf( 'Marking guide', array( 'A: 80 and above', 'B: 70 to 79', 'C: 60 to 69', 'Moderate every third paper.' ) ), 'For teachers', 6 );
+			self::file( $room, 'Staff timetable.csv', "Teacher,Monday,Tuesday\nMs Ade,Class A,Class B\nMr Bayo,Class B,Class A\n", '', 2 );
+		}
 
 		self::file( $w1, 'Welcome and course outline.pdf', self::pdf( 'Welcome and course outline', array( 'Week 1 - Getting started', 'Week 2 - Core ideas', 'Week 3 - Practice and review', 'Bring your notebook to every class.' ) ), 'Read before the first class', 12 );
 		self::file( $w1, 'Reading list.txt', "Reading list\n============\n1. Chapter 1 - Foundations\n2. Chapter 2 - Method\n3. Chapter 3 - Case studies\n", '', 12 );

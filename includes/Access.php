@@ -52,11 +52,27 @@ class Access {
 		return ( $id && current_user_can( 'manage_bizycore' ) && current_user_can( 'bizycore_clients' ) ) ? $id : 0;
 	}
 
+	/** A user id staff are previewing the library as (header X-Bizy-As-User), or 0. */
+	public static function simulated_user() {
+		$id = 0;
+		if ( ! empty( $_SERVER['HTTP_X_BIZY_AS_USER'] ) ) {
+			$id = absint( wp_unslash( $_SERVER['HTTP_X_BIZY_AS_USER'] ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+		} elseif ( ! empty( $_GET['bd_as_user'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+			$id = absint( $_GET['bd_as_user'] ); // phpcs:ignore WordPress.Security.NonceVerification
+		}
+		return ( $id && get_userdata( $id ) && current_user_can( 'manage_bizycore' ) && current_user_can( 'bizycore_clients' ) ) ? $id : 0;
+	}
+
 	/** @return array{user:int,staff:bool,manager:bool,client_ids:int[],group_ids:int[],simulated:bool} */
 	public static function viewer( $user_id = 0 ) {
 		$as = $user_id ? 0 : self::simulated_client();
 		if ( $as ) {
 			return array( 'user' => get_current_user_id(), 'staff' => false, 'manager' => false, 'client_ids' => array( $as ), 'group_ids' => Groups::for_clients( array( $as ) ), 'simulated' => true );
+		}
+		$as_user = $user_id ? 0 : self::simulated_user();
+		if ( $as_user ) { // staff previewing as one person: what that person's roles and client links would give
+			$clients = array_map( 'intval', Portal_Users::client_ids( $as_user ) );
+			return array( 'user' => $as_user, 'staff' => false, 'manager' => false, 'client_ids' => $clients, 'group_ids' => array_values( array_unique( array_merge( Groups::for_clients( $clients ), Groups::for_user( $as_user ) ) ) ), 'simulated' => true );
 		}
 		$user_id = $user_id ? (int) $user_id : get_current_user_id();
 		$u       = $user_id ? get_userdata( $user_id ) : null;
@@ -68,7 +84,7 @@ class Access {
 			'staff'      => (bool) $staff,
 			'manager'    => (bool) $mgr,
 			'client_ids' => $clients,
-			'group_ids'  => Groups::for_clients( $clients ),
+			'group_ids'  => array_values( array_unique( array_merge( Groups::for_clients( $clients ), $user_id ? Groups::for_user( $user_id ) : array() ) ) ), // hand-picked clients' groups + groups tied to the roles the person holds now
 			'simulated'  => false,
 		);
 	}
@@ -80,9 +96,9 @@ class Access {
 		}
 		$v = self::viewer();
 		if ( $v['staff'] ) {
-			return $v['manager'] || current_user_can( 'bizyfiles_use' );
+			return $v['manager'] || current_user_can( 'bizyfiles_use' ) || ! empty( $v['group_ids'] );
 		}
-		return ! empty( $v['client_ids'] );
+		return ! empty( $v['client_ids'] ) || ! empty( $v['group_ids'] );
 	}
 
 	/* ───────────────────────── Folders and rules ───────────────────────── */
@@ -148,7 +164,7 @@ class Access {
 			case 'team':
 				return $v['staff'];
 			case 'users':
-				return ! $v['staff'] && ! empty( $v['client_ids'] );
+				return ! $v['staff'] && ( ! empty( $v['client_ids'] ) || ! empty( $v['group_ids'] ) ); // anyone signed in who uses Files without being on the team
 			case 'group':
 				return in_array( $r['id'], $v['group_ids'], true );
 			case 'client':
@@ -260,6 +276,9 @@ class Access {
 			$name = 'All users';
 		} elseif ( 'group' === $r['type'] ) {
 			$name = (string) $wpdb->get_var( $wpdb->prepare( 'SELECT name FROM ' . $wpdb->prefix . 'bizy_groups WHERE id=%d', $r['id'] ) ); // phpcs:ignore WordPress.DB
+			return $r + array( 'name' => $name, 'roles' => array_map( function ( $slug ) {
+				return Groups::role_info( $slug )['label'];
+			}, Groups::roles( (int) $r['id'] ) ) );
 		} elseif ( 'client' === $r['type'] ) {
 			$name = (string) $wpdb->get_var( $wpdb->prepare( 'SELECT name FROM ' . $wpdb->prefix . 'bizy_clients WHERE id=%d', $r['id'] ) ); // phpcs:ignore WordPress.DB
 		}

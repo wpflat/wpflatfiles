@@ -41,6 +41,15 @@ class Notify {
 			N::emit( 'team_file_uploaded', N::users_with( 'bizyfiles_manage' ), 'File uploaded: ' . $file['name'], 'A user added a file.', '/files?folder=' . (int) $file['folder_id'], 0, 'file', (int) $file['id'], 'fup:' . $file['id'] );
 			return;
 		}
+		// People who hold a role linked to a group the folder is shared with
+		foreach ( Access::rules_of( Access::definer( (int) $file['folder_id'] ) ) as $r ) {
+			if ( 'group' === $r['type'] ) {
+				$users = array_slice( Groups::member_users( $r['id'] ), 0, 200 );
+				if ( $users ) {
+					N::emit( 'client_file_new', $users, 'New file: ' . $file['name'], 'A file was added to a folder shared with you.', home_url( '/' . Settings::get( 'front_slug' ) . '/' ), 0, 'file', (int) $file['id'], 'fnewr:' . $file['id'] . ':' . $r['id'] );
+				}
+			}
+		}
 		$n = 0;
 		foreach ( self::audience( (int) $file['folder_id'] ) as $cid ) {
 			if ( ++$n > 200 ) {

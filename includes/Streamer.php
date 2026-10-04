@@ -17,13 +17,15 @@ class Streamer {
 	}
 
 	public static function url( $file_id, array $args = array() ) {
-		$as = Access::simulated_client();
-		return add_query_arg( array_merge( array( 'bd_file' => (int) $file_id ), $as ? array( 'bd_as' => $as ) : array(), $args ), home_url( '/' ) );
+		$as  = Access::simulated_client();
+		$asu = Access::simulated_user();
+		return add_query_arg( array_merge( array( 'bd_file' => (int) $file_id ), $as ? array( 'bd_as' => $as ) : array(), $asu ? array( 'bd_as_user' => $asu ) : array(), $args ), home_url( '/' ) );
 	}
 
 	public static function folder_url( $folder_id ) {
-		$as = Access::simulated_client();
-		return add_query_arg( array_merge( array( 'bd_folder' => (int) $folder_id ), $as ? array( 'bd_as' => $as ) : array() ), home_url( '/' ) );
+		$as  = Access::simulated_client();
+		$asu = Access::simulated_user();
+		return add_query_arg( array_merge( array( 'bd_folder' => (int) $folder_id ), $as ? array( 'bd_as' => $as ) : array(), $asu ? array( 'bd_as_user' => $asu ) : array() ), home_url( '/' ) );
 	}
 
 	private static function nocache() {

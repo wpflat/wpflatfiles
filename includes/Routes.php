@@ -150,6 +150,7 @@ class Routes {
 			'simulated'      => ! empty( $v['simulated'] ),
 			'user'           => $me->display_name,
 			'allowed'        => Store::ALLOWED,
+			'front_url'      => Settings::get( 'front_enabled' ) ? Front_Page::url() : '',
 			'words'          => array_intersect_key( \BizyCore\Terminology::export()['words'], array_flip( array( 'client', 'group', 'team', 'department' ) ) ),
 		);
 	}
@@ -597,8 +598,14 @@ class Routes {
 		$q    = '%' . $wpdb->esc_like( (string) $r->get_param( 'q' ) ) . '%';
 		$tbl  = $wpdb->prefix . ( 'client' === $type ? 'bizy_clients' : 'bizy_groups' );
 		$rows = $wpdb->get_results( $wpdb->prepare( "SELECT id, name FROM $tbl WHERE name LIKE %s ORDER BY name LIMIT 30", $q ), ARRAY_A ); // phpcs:ignore WordPress.DB
-		return rest_ensure_response( array_map( function ( $x ) {
-			return array( 'id' => (int) $x['id'], 'name' => $x['name'] );
+		return rest_ensure_response( array_map( function ( $x ) use ( $type ) {
+			$o = array( 'id' => (int) $x['id'], 'name' => $x['name'] );
+			if ( 'group' === $type ) { // groups tied to roles say so (the access dialog shows it as a badge)
+				$o['roles'] = array_map( function ( $r ) {
+					return \BizyCore\Services\Groups::role_info( $r )['label'];
+				}, \BizyCore\Services\Groups::roles( (int) $x['id'] ) );
+			}
+			return $o;
 		}, (array) $rows ) );
 	}
 

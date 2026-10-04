@@ -28,6 +28,8 @@ class Settings {
 			'trash_days'         => 30,
 			'default_view'       => 'details', // details | list | tiles | icons
 			'user_label'         => '',
+			'front_enabled'      => true,    // the stand-alone front-end page for anyone signed in who has access
+			'front_slug'         => 'files', // its address: yoursite.com/files/
 		);
 	}
 
@@ -54,6 +56,14 @@ class Settings {
 		}
 		if ( isset( $in['trash_days'] ) ) {
 			$s['trash_days'] = min( 3650, max( 0, (int) $in['trash_days'] ) );
+		}
+		if ( isset( $in['front_enabled'] ) ) {
+			$s['front_enabled'] = (bool) $in['front_enabled'];
+		}
+		if ( isset( $in['front_slug'] ) ) {
+			$slug = sanitize_title( (string) $in['front_slug'] );
+			$bad  = array( 'wp-admin', 'wp-json', 'wp-content', 'wp-includes', 'wp-login', 'feed', 'sign', 'contract', 'verify', 'invoice', 'share', 'login', (string) \BizyCore\Settings::get( 'app_slug' ), (string) \BizyCore\Settings::get( 'portal_slug' ) );
+			$s['front_slug'] = ( '' !== $slug && ! in_array( $slug, $bad, true ) ) ? $slug : 'files';
 		}
 		if ( isset( $in['default_view'] ) && in_array( $in['default_view'], array( 'details', 'list', 'tiles', 'icons' ), true ) ) {
 			$s['default_view'] = $in['default_view'];
