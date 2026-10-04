@@ -4,7 +4,7 @@ A File Explorer-style file manager for the Bizy suite: six themes, folders, vers
 
 Needs BizyCore.
 
-Part of the **Bizy** suite (BizyCore, BizyTasks, BizyMoney, BizyDocs, BizyFiles). Each plugin has its own repository and installs on its own; the modules need BizyCore.
+Part of the **Bizy** suite (BizyCore, BizyTasks, BizyMoney, BizyDoc, BizyFiles). Each plugin has its own repository and installs on its own; the modules need BizyCore.
 
 ## Install
 
