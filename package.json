@@ -1,6 +1,6 @@
 {
   "name": "wpflatfiles",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "private": true,
   "type": "module",
   "description": "A File Explorer-style file manager for the WPFlat suite: six themes, folders, versions, previews, share links, a recycle bin, chunked uploads, links to externally hosted video, and access per folder for people and groups. Works in the app and on the front end for your users.",

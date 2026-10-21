@@ -2,7 +2,7 @@
 /**
  * Plugin Name: WPFlat Files
  * Description: A file manager that looks like File Explorer: folders, versions, previews, sharing, and folder-level access for people and groups. Works in the app and on the front end for your users. Needs WPFlat Core.
- * Version: 0.4.0
+ * Version: 0.4.1
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Author: Digitalzooks
@@ -12,7 +12,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'WPFLATFILES_VERSION', '0.4.0' );
+define( 'WPFLATFILES_VERSION', '0.4.1' );
 define( 'WPFLATFILES_FILE', __FILE__ );
 define( 'WPFLATFILES_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WPFLATFILES_URL', plugin_dir_url( __FILE__ ) );
