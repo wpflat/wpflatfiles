@@ -1,8 +1,8 @@
 <?php
-namespace BizyFiles;
+namespace WPFlatFiles;
 
-use BizyCore\Paths;
-use BizyCore\Services\Activity;
+use WPFlatCore\Paths;
+use WPFlatCore\Services\Activity;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -32,7 +32,7 @@ class Streamer {
 		if ( ! defined( 'DONOTCACHEPAGE' ) ) {
 			define( 'DONOTCACHEPAGE', true );
 		}
-		do_action( 'litespeed_control_set_nocache', 'bizyfiles' );
+		do_action( 'litespeed_control_set_nocache', 'wpflatfiles' );
 		nocache_headers();
 		header( 'X-Robots-Tag: noindex, nofollow, noarchive' );
 		header( 'X-Content-Type-Options: nosniff' );
@@ -240,16 +240,16 @@ class Streamer {
 		self::nocache();
 		$s = self::share_row( $token );
 		$f = $s ? Store::file_row( $s['file_id'] ) : null;
-		$biz = (string) \BizyCore\Settings::get( 'business_name' );
+		$biz = (string) \WPFlatCore\Settings::get( 'business_name' );
 		if ( ! $s || ! $f || null !== $f['deleted_at'] ) {
 			status_header( 404 );
-			echo \BizyCore\Public_Page::shell( 'Link not found', '<main class="bd-wrap"><div class="bd-doc bd-doc--empty"><h1>This link is not available</h1><p>It may be wrong or may have been removed.</p></div></main>', $biz ); // phpcs:ignore WordPress.Security.EscapeOutput
+			echo \WPFlatCore\Public_Page::shell( 'Link not found', '<main class="bd-wrap"><div class="bd-doc bd-doc--empty"><h1>This link is not available</h1><p>It may be wrong or may have been removed.</p></div></main>', $biz ); // phpcs:ignore WordPress.Security.EscapeOutput
 			exit;
 		}
 		$state = self::share_state( $s );
 		if ( true !== $state ) {
 			status_header( 410 );
-			echo \BizyCore\Public_Page::shell( 'Link unavailable', '<main class="bd-wrap"><div class="bd-doc bd-doc--empty"><h1>' . esc_html( $state ) . '</h1><p>Please ask the sender for a new link.</p></div></main>', $biz ); // phpcs:ignore WordPress.Security.EscapeOutput
+			echo \WPFlatCore\Public_Page::shell( 'Link unavailable', '<main class="bd-wrap"><div class="bd-doc bd-doc--empty"><h1>' . esc_html( $state ) . '</h1><p>Please ask the sender for a new link.</p></div></main>', $biz ); // phpcs:ignore WordPress.Security.EscapeOutput
 			exit;
 		}
 		$ok_pw = '' === $s['password_hash'];
@@ -294,7 +294,7 @@ class Streamer {
 		}
 		$body .= '</div></main>';
 		status_header( 200 );
-		echo \BizyCore\Public_Page::shell( $f['name'] . ' — ' . $biz, $body, $biz ); // phpcs:ignore WordPress.Security.EscapeOutput
+		echo \WPFlatCore\Public_Page::shell( $f['name'] . ' — ' . $biz, $body, $biz ); // phpcs:ignore WordPress.Security.EscapeOutput
 		exit;
 	}
 
@@ -305,7 +305,7 @@ class Streamer {
 		global $wpdb;
 		$f = Store::file_row( $file_id );
 		if ( ! $f ) {
-			return new \WP_Error( 'bizyfiles_not_found', 'That file does not exist.', array( 'status' => 404 ) );
+			return new \WP_Error( 'wpflatfiles_not_found', 'That file does not exist.', array( 'status' => 404 ) );
 		}
 		$days   = isset( $opts['expires_days'] ) ? (int) $opts['expires_days'] : 7;
 		$expiry = $days > 0 ? gmdate( 'Y-m-d H:i:s', time() + $days * DAY_IN_SECONDS ) : null;

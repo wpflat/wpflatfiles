@@ -1,12 +1,12 @@
 <?php
-namespace BizyFiles;
+namespace WPFlatFiles;
 
 defined( 'ABSPATH' ) || exit;
 
-/** BizyFiles' settings: the look, upload limits and the recycle bin. */
+/** WPFlat Files' settings: the look, upload limits and the recycle bin. */
 class Settings {
 
-	const OPTION = 'bizyfiles_settings';
+	const OPTION = 'wpflatfiles_settings';
 
 	/** theme id => label. The explorer draws itself from CSS variables, so a theme is a set of colours, shapes and density. */
 	const THEMES = array(
@@ -62,7 +62,7 @@ class Settings {
 		}
 		if ( isset( $in['front_slug'] ) ) {
 			$slug = sanitize_title( (string) $in['front_slug'] );
-			$bad  = array( 'wp-admin', 'wp-json', 'wp-content', 'wp-includes', 'wp-login', 'feed', 'sign', 'contract', 'verify', 'invoice', 'share', 'login', (string) \BizyCore\Settings::get( 'app_slug' ), (string) \BizyCore\Settings::get( 'portal_slug' ) );
+			$bad  = array( 'wp-admin', 'wp-json', 'wp-content', 'wp-includes', 'wp-login', 'feed', 'sign', 'contract', 'verify', 'invoice', 'share', 'login', (string) \WPFlatCore\Settings::get( 'app_slug' ), (string) \WPFlatCore\Settings::get( 'portal_slug' ) );
 			$s['front_slug'] = ( '' !== $slug && ! in_array( $slug, $bad, true ) ) ? $slug : 'files';
 		}
 		if ( isset( $in['default_view'] ) && in_array( $in['default_view'], array( 'details', 'list', 'tiles', 'icons' ), true ) ) {

@@ -1,9 +1,9 @@
 <?php
-namespace BizyFiles;
+namespace WPFlatFiles;
 
-use BizyCore\Assets;
-use BizyCore\Portal;
-use BizyCore\Urls;
+use WPFlatCore\Assets;
+use WPFlatCore\Portal;
+use WPFlatCore\Urls;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -43,12 +43,12 @@ class Portal_Page {
 			'api'     => untrailingslashit( Urls::api() ),
 			'nonce'   => wp_create_nonce( 'wp_rest' ),
 			'config'  => Routes::client_config(),
-			'brand'   => (string) \BizyCore\Settings::get( 'business_name' ),
+			'brand'   => (string) \WPFlatCore\Settings::get( 'business_name' ),
 		), $extra );
-		$js  = Assets::module_url( 'files', 'bizyfiles-explorer.js' );
-		$css = Assets::module_url( 'files', 'bizyfiles-explorer.css' );
-		return '<link rel="stylesheet" href="' . esc_url( $css ) . '"><div id="bizyfiles-root" class="bizyfiles-root bizyfiles-' . esc_attr( $mode ) . '"></div>'
-			. '<script>window.BizyFilesBoot=' . wp_json_encode( $boot ) . ';</script>'
+		$js  = Assets::module_url( 'files', 'wpflatfiles-explorer.js' );
+		$css = Assets::module_url( 'files', 'wpflatfiles-explorer.css' );
+		return '<link rel="stylesheet" href="' . esc_url( $css ) . '"><div id="wpflatfiles-root" class="wpflatfiles-root wpflatfiles-' . esc_attr( $mode ) . '"></div>'
+			. '<script>window.WPFlatFilesBoot=' . wp_json_encode( $boot ) . ';</script>'
 			. '<script src="' . esc_url( $js ) . '" defer></script>';
 	}
 

@@ -24,7 +24,7 @@ export function createApi( boot ) {
 
 	const headers = ( extra ) => {
 		const h = { 'X-WP-Nonce': boot.nonce || '', Accept: 'application/json', ...( extra || {} ) };
-		if ( boot.as ) h[ 'X-Bizy-As' ] = String( boot.as );
+		if ( boot.as ) h[ 'X-WPFlat-As' ] = String( boot.as );
 		return h;
 	};
 

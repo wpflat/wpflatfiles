@@ -10,12 +10,12 @@ const home = computed( () => String( ( store && store.homeUrl ) || '' ).replace(
 const slug = computed( () => String( form.front_slug || '' ).trim().replace( /^\/+|\/+$/g, '' ) );
 const note = computed( () => sdk.fmt( 'People with a {client} record also get Files in their portal. People who have a linked role instead (teachers and so on) sign in here.' ) );
 const roles = [
-	[ 'Bizy File Manager', 'Create, rename, move, delete and upload everywhere. Cannot change who has access.' ],
-	[ 'Bizy File Contributor', 'See everything and add files anywhere.' ],
-	[ 'Bizy File Viewer', 'See and download everything only.' ],
-	[ 'Bizy Files Admin', 'Full control, including who has access.' ],
+	[ 'WPFlat File Manager', 'Create, rename, move, delete and upload everywhere. Cannot change who has access.' ],
+	[ 'WPFlat File Contributor', 'See everything and add files anywhere.' ],
+	[ 'WPFlat File Viewer', 'See and download everything only.' ],
+	[ 'WPFlat Files Admin', 'Full control, including who has access.' ],
 ];
-const rolesHow = computed( () => sdk.fmt( 'Give someone one of these roles under Users → Edit user → Role, or add the capabilities bizyfiles_view_all, bizyfiles_upload, bizyfiles_edit to a role you made in your role editor. These roles apply to every folder; use {groups} to give someone access to particular folders.' ).replace( '{groups}', 'groups' ) );
+const rolesHow = computed( () => sdk.fmt( 'Give someone one of these roles under Users → Edit user → Role, or add the capabilities wpflatfiles_view_all, wpflatfiles_upload, wpflatfiles_edit to a role you made in your role editor. These roles apply to every folder; use {groups} to give someone access to particular folders.' ).replace( '{groups}', 'groups' ) );
 const preview = computed( () => home.value + '/' + ( slug.value || 'files' ) + '/' );
 const themes = ref( {} );
 const loaded = ref( false );

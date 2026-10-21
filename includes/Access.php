@@ -1,8 +1,8 @@
 <?php
-namespace BizyFiles;
+namespace WPFlatFiles;
 
-use BizyCore\Services\Groups;
-use BizyCore\Services\Portal_Users;
+use WPFlatCore\Services\Groups;
+use WPFlatCore\Services\Portal_Users;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -13,7 +13,7 @@ defined( 'ABSPATH' ) || exit;
  * their own. A rule gives a level — view, upload, edit, manage — to one of: the whole team ("team"), every portal user
  * ("users"), a group, or one client. A folder nobody's rules match is invisible to that person, and so are its contents.
  *
- * Team members with the BizyFiles manage capability (and WordPress administrators) can do everything everywhere.
+ * Team members with the WPFlat Files manage capability (and WordPress administrators) can do everything everywhere.
  */
 class Access {
 
@@ -33,28 +33,28 @@ class Access {
 	/* ───────────────────────── Who is asking ───────────────────────── */
 
 	public static function is_manager() {
-		return current_user_can( 'manage_options' ) || ( current_user_can( 'manage_bizycore' ) && current_user_can( 'bizyfiles_manage' ) );
+		return current_user_can( 'manage_options' ) || ( current_user_can( 'manage_wpflatcore' ) && current_user_can( 'wpflatfiles_manage' ) );
 	}
 
 	/** Staff who may open the file manager in the app (they see what the "team" rules and their own manage right allow). */
 	public static function is_staff() {
-		return current_user_can( 'manage_options' ) || current_user_can( 'manage_bizycore' );
+		return current_user_can( 'manage_options' ) || current_user_can( 'manage_wpflatcore' );
 	}
 
 	/** Client id a staff member is previewing the library as (the portal's "view as" mode), or 0. */
 	public static function simulated_client() {
 		$id = 0;
-		if ( ! empty( $_SERVER['HTTP_X_BIZY_AS'] ) ) {
-			$id = absint( wp_unslash( $_SERVER['HTTP_X_BIZY_AS'] ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+		if ( ! empty( $_SERVER['HTTP_X_WPFLAT_AS'] ) ) {
+			$id = absint( wp_unslash( $_SERVER['HTTP_X_WPFLAT_AS'] ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
 		} elseif ( ! empty( $_GET['bd_as'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			$id = absint( $_GET['bd_as'] ); // phpcs:ignore WordPress.Security.NonceVerification
 		}
-		return ( $id && current_user_can( 'manage_bizycore' ) && current_user_can( 'bizycore_clients' ) ) ? $id : 0;
+		return ( $id && current_user_can( 'manage_wpflatcore' ) && current_user_can( 'wpflatcore_clients' ) ) ? $id : 0;
 	}
 
 	/**
-	 * What a person's capabilities allow in every folder: 0 none, 1 view everything (bizyfiles_view_all), 2 also add files
-	 * (bizyfiles_upload), 3 also create, rename, move and delete (bizyfiles_edit), 4 everything (bizyfiles_manage or an administrator).
+	 * What a person's capabilities allow in every folder: 0 none, 1 view everything (wpflatfiles_view_all), 2 also add files
+	 * (wpflatfiles_upload), 3 also create, rename, move and delete (wpflatfiles_edit), 4 everything (wpflatfiles_manage or an administrator).
 	 * Each higher capability includes the lower ones, so a role only needs its own.
 	 */
 	public static function global_level( $user_id ) {
@@ -62,10 +62,10 @@ class Access {
 		if ( ! $u ) {
 			return 0;
 		}
-		if ( user_can( $u, 'manage_options' ) || user_can( $u, 'bizyfiles_manage' ) ) {
+		if ( user_can( $u, 'manage_options' ) || user_can( $u, 'wpflatfiles_manage' ) ) {
 			return 4;
 		}
-		foreach ( array( 3 => 'bizyfiles_edit', 2 => 'bizyfiles_upload', 1 => 'bizyfiles_view_all' ) as $lv => $cap ) {
+		foreach ( array( 3 => 'wpflatfiles_edit', 2 => 'wpflatfiles_upload', 1 => 'wpflatfiles_view_all' ) as $lv => $cap ) {
 			if ( user_can( $u, $cap ) ) {
 				return $lv;
 			}
@@ -73,15 +73,15 @@ class Access {
 		return 0;
 	}
 
-	/** A user id staff are previewing the library as (header X-Bizy-As-User), or 0. */
+	/** A user id staff are previewing the library as (header X-WPFlat-As-User), or 0. */
 	public static function simulated_user() {
 		$id = 0;
-		if ( ! empty( $_SERVER['HTTP_X_BIZY_AS_USER'] ) ) {
-			$id = absint( wp_unslash( $_SERVER['HTTP_X_BIZY_AS_USER'] ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+		if ( ! empty( $_SERVER['HTTP_X_WPFLAT_AS_USER'] ) ) {
+			$id = absint( wp_unslash( $_SERVER['HTTP_X_WPFLAT_AS_USER'] ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
 		} elseif ( ! empty( $_GET['bd_as_user'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			$id = absint( $_GET['bd_as_user'] ); // phpcs:ignore WordPress.Security.NonceVerification
 		}
-		return ( $id && get_userdata( $id ) && current_user_can( 'manage_bizycore' ) && current_user_can( 'bizycore_clients' ) ) ? $id : 0;
+		return ( $id && get_userdata( $id ) && current_user_can( 'manage_wpflatcore' ) && current_user_can( 'wpflatcore_clients' ) ) ? $id : 0;
 	}
 
 	/** @return array{user:int,staff:bool,manager:bool,client_ids:int[],group_ids:int[],simulated:bool} */
@@ -97,8 +97,8 @@ class Access {
 		}
 		$user_id = $user_id ? (int) $user_id : get_current_user_id();
 		$u       = $user_id ? get_userdata( $user_id ) : null;
-		$staff   = $u && ( user_can( $u, 'manage_options' ) || user_can( $u, 'manage_bizycore' ) );
-		$mgr     = $u && ( user_can( $u, 'manage_options' ) || ( user_can( $u, 'manage_bizycore' ) && user_can( $u, 'bizyfiles_manage' ) ) );
+		$staff   = $u && ( user_can( $u, 'manage_options' ) || user_can( $u, 'manage_wpflatcore' ) );
+		$mgr     = $u && ( user_can( $u, 'manage_options' ) || ( user_can( $u, 'manage_wpflatcore' ) && user_can( $u, 'wpflatfiles_manage' ) ) );
 		$clients = ( $u && ! $staff ) ? array_map( 'intval', Portal_Users::client_ids( $user_id ) ) : array();
 		return array(
 			'user'       => $user_id,
@@ -121,7 +121,7 @@ class Access {
 			return true;
 		}
 		if ( $v['staff'] ) {
-			return $v['manager'] || current_user_can( 'bizyfiles_use' ) || ! empty( $v['group_ids'] );
+			return $v['manager'] || current_user_can( 'wpflatfiles_use' ) || ! empty( $v['group_ids'] );
 		}
 		return ! empty( $v['client_ids'] ) || ! empty( $v['group_ids'] );
 	}
@@ -276,7 +276,7 @@ class Access {
 		$folder_id = (int) $folder_id;
 		$f         = self::folder( $folder_id );
 		if ( ! $f ) {
-			return new \WP_Error( 'bizyfiles_not_found', 'That folder does not exist.', array( 'status' => 404 ) );
+			return new \WP_Error( 'wpflatfiles_not_found', 'That folder does not exist.', array( 'status' => 404 ) );
 		}
 		$inherit = ( 0 === $f['parent_id'] ) ? 0 : ( $inherit ? 1 : 0 );
 		$wpdb->update( Install::table( 'folders' ), array( 'inherit' => $inherit, 'updated_at' => current_time( 'mysql' ) ), array( 'id' => $folder_id ) );
@@ -287,7 +287,7 @@ class Access {
 			}
 		}
 		self::reset();
-		do_action( 'bizyfiles_access_changed', $folder_id );
+		do_action( 'wpflatfiles_access_changed', $folder_id );
 		return true;
 	}
 
@@ -300,12 +300,12 @@ class Access {
 		} elseif ( 'users' === $r['type'] ) {
 			$name = 'All users';
 		} elseif ( 'group' === $r['type'] ) {
-			$name = (string) $wpdb->get_var( $wpdb->prepare( 'SELECT name FROM ' . $wpdb->prefix . 'bizy_groups WHERE id=%d', $r['id'] ) ); // phpcs:ignore WordPress.DB
+			$name = (string) $wpdb->get_var( $wpdb->prepare( 'SELECT name FROM ' . $wpdb->prefix . 'wpflat_groups WHERE id=%d', $r['id'] ) ); // phpcs:ignore WordPress.DB
 			return $r + array( 'name' => $name, 'roles' => array_map( function ( $slug ) {
 				return Groups::role_info( $slug )['label'];
 			}, Groups::roles( (int) $r['id'] ) ) );
 		} elseif ( 'client' === $r['type'] ) {
-			$name = (string) $wpdb->get_var( $wpdb->prepare( 'SELECT name FROM ' . $wpdb->prefix . 'bizy_clients WHERE id=%d', $r['id'] ) ); // phpcs:ignore WordPress.DB
+			$name = (string) $wpdb->get_var( $wpdb->prepare( 'SELECT name FROM ' . $wpdb->prefix . 'wpflat_clients WHERE id=%d', $r['id'] ) ); // phpcs:ignore WordPress.DB
 		}
 		return $r + array( 'name' => $name );
 	}

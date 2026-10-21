@@ -1,11 +1,11 @@
 <?php
-namespace BizyFiles;
+namespace WPFlatFiles;
 
-use BizyCore\Rest\Routes as Core_Routes;
+use WPFlatCore\Rest\Routes as Core_Routes;
 
 defined( 'ABSPATH' ) || exit;
 
-/** BizyFiles' REST routes (in BizyCore's bizycore/v1 namespace, under /fm/). Every route checks folder access itself. */
+/** WPFlat Files' REST routes (in WPFlat Core's wpflatcore/v1 namespace, under /fm/). Every route checks folder access itself. */
 class Routes {
 
 	private static function reg( $route, $args ) {
@@ -17,7 +17,7 @@ class Routes {
 	}
 
 	private static function denied() {
-		return new \WP_Error( 'bizyfiles_denied', 'You do not have access to that.', array( 'status' => 403 ) );
+		return new \WP_Error( 'wpflatfiles_denied', 'You do not have access to that.', array( 'status' => 403 ) );
 	}
 
 	public static function register() {
@@ -134,8 +134,8 @@ class Routes {
 		$v  = Access::viewer();
 		$s  = Settings::get();
 		$me = wp_get_current_user();
-		$theme = (string) get_user_meta( $me->ID, 'bizyfiles_theme', true );
-		$view  = (string) get_user_meta( $me->ID, 'bizyfiles_view', true );
+		$theme = (string) get_user_meta( $me->ID, 'wpflatfiles_theme', true );
+		$view  = (string) get_user_meta( $me->ID, 'wpflatfiles_view', true );
 		return array(
 			'themes'         => Settings::THEMES,
 			'theme'          => ( $s['theme_switch'] && isset( Settings::THEMES[ $theme ] ) ) ? $theme : $s['theme'],
@@ -152,7 +152,7 @@ class Routes {
 			'user'           => $me->display_name,
 			'allowed'        => Store::ALLOWED,
 			'front_url'      => Settings::get( 'front_enabled' ) ? Front_Page::url() : '',
-			'words'          => array_intersect_key( \BizyCore\Terminology::export()['words'], array_flip( array( 'client', 'group', 'team', 'department' ) ) ),
+			'words'          => array_intersect_key( \WPFlatCore\Terminology::export()['words'], array_flip( array( 'client', 'group', 'team', 'department' ) ) ),
 		);
 	}
 
@@ -163,10 +163,10 @@ class Routes {
 	public static function prefs( \WP_REST_Request $r ) {
 		$uid = get_current_user_id();
 		if ( $r->get_param( 'theme' ) && isset( Settings::THEMES[ $r->get_param( 'theme' ) ] ) && Settings::get( 'theme_switch' ) ) {
-			update_user_meta( $uid, 'bizyfiles_theme', $r->get_param( 'theme' ) );
+			update_user_meta( $uid, 'wpflatfiles_theme', $r->get_param( 'theme' ) );
 		}
 		if ( in_array( $r->get_param( 'view' ), array( 'details', 'list', 'tiles', 'icons' ), true ) ) {
-			update_user_meta( $uid, 'bizyfiles_view', $r->get_param( 'view' ) );
+			update_user_meta( $uid, 'wpflatfiles_view', $r->get_param( 'view' ) );
 		}
 		return rest_ensure_response( self::client_config() );
 	}
@@ -344,7 +344,7 @@ class Routes {
 		if ( ! $f || ! Access::can( $id, 'edit', $v ) || ( 0 === $f['parent_id'] && ! self::may_top( $v ) ) ) {
 			return self::denied();
 		}
-		return self::out( Store::trash_folder( $id ) ? array( 'ok' => true ) : new \WP_Error( 'bizyfiles_db', 'Could not delete the folder.' ) );
+		return self::out( Store::trash_folder( $id ) ? array( 'ok' => true ) : new \WP_Error( 'wpflatfiles_db', 'Could not delete the folder.' ) );
 	}
 
 	public static function folder_copy( \WP_REST_Request $r ) {
@@ -414,7 +414,7 @@ class Routes {
 		if ( $file_id ) {
 			$f = Store::file_row( $file_id );
 			if ( ! $f ) {
-				return new \WP_Error( 'bizyfiles_not_found', 'That file does not exist.', array( 'status' => 404 ) );
+				return new \WP_Error( 'wpflatfiles_not_found', 'That file does not exist.', array( 'status' => 404 ) );
 			}
 			$folder = (int) $f['folder_id'];
 		}
@@ -454,7 +454,7 @@ class Routes {
 	private static function item( \WP_REST_Request $r, $need ) {
 		$f = Store::file_row( (int) $r['id'] );
 		if ( ! $f || null !== $f['deleted_at'] ) {
-			return new \WP_Error( 'bizyfiles_not_found', 'That file does not exist.', array( 'status' => 404 ) );
+			return new \WP_Error( 'wpflatfiles_not_found', 'That file does not exist.', array( 'status' => 404 ) );
 		}
 		if ( ! Access::can( (int) $f['folder_id'], $need ) ) {
 			return self::denied();
@@ -477,7 +477,7 @@ class Routes {
 
 	public static function item_delete( \WP_REST_Request $r ) {
 		$f = self::item( $r, 'edit' );
-		return is_wp_error( $f ) ? $f : self::out( Store::trash_file( $f['id'] ) ? array( 'ok' => true ) : new \WP_Error( 'bizyfiles_db', 'Could not delete the file.' ) );
+		return is_wp_error( $f ) ? $f : self::out( Store::trash_file( $f['id'] ) ? array( 'ok' => true ) : new \WP_Error( 'wpflatfiles_db', 'Could not delete the file.' ) );
 	}
 
 	public static function item_copy( \WP_REST_Request $r ) {
@@ -602,14 +602,14 @@ class Routes {
 		}
 		$type = 'client' === $r->get_param( 'type' ) ? 'client' : 'group';
 		$q    = '%' . $wpdb->esc_like( (string) $r->get_param( 'q' ) ) . '%';
-		$tbl  = $wpdb->prefix . ( 'client' === $type ? 'bizy_clients' : 'bizy_groups' );
+		$tbl  = $wpdb->prefix . ( 'client' === $type ? 'wpflat_clients' : 'wpflat_groups' );
 		$rows = $wpdb->get_results( $wpdb->prepare( "SELECT id, name FROM $tbl WHERE name LIKE %s ORDER BY name LIMIT 30", $q ), ARRAY_A ); // phpcs:ignore WordPress.DB
 		return rest_ensure_response( array_map( function ( $x ) use ( $type ) {
 			$o = array( 'id' => (int) $x['id'], 'name' => $x['name'] );
 			if ( 'group' === $type ) { // groups tied to roles say so (the access dialog shows it as a badge)
 				$o['roles'] = array_map( function ( $r ) {
-					return \BizyCore\Services\Groups::role_info( $r )['label'];
-				}, \BizyCore\Services\Groups::roles( (int) $x['id'] ) );
+					return \WPFlatCore\Services\Groups::role_info( $r )['label'];
+				}, \WPFlatCore\Services\Groups::roles( (int) $x['id'] ) );
 			}
 			return $o;
 		}, (array) $rows ) );

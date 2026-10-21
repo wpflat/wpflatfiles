@@ -1,9 +1,9 @@
 <?php
-namespace BizyFiles;
+namespace WPFlatFiles;
 
-use BizyCore\App_Login;
-use BizyCore\Registry;
-use BizyCore\Urls;
+use WPFlatCore\App_Login;
+use WPFlatCore\Registry;
+use WPFlatCore\Urls;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -40,7 +40,7 @@ class Front_Page {
 		if ( ! defined( 'DONOTCACHEPAGE' ) ) {
 			define( 'DONOTCACHEPAGE', true );
 		}
-		do_action( 'litespeed_control_set_nocache', 'bizyfiles front' );
+		do_action( 'litespeed_control_set_nocache', 'wpflatfiles front' );
 		nocache_headers();
 		header( 'X-Robots-Tag: noindex, nofollow' );
 		header( 'X-Frame-Options: SAMEORIGIN' );
@@ -59,8 +59,8 @@ class Front_Page {
 	/** A light page: the business name, who is signed in, sign out, and the content. Then stop. */
 	private static function page( $title, $body ) {
 		$u     = wp_get_current_user();
-		$biz   = (string) \BizyCore\Settings::get( 'business_name' );
-		$staff = current_user_can( 'manage_bizycore' );
+		$biz   = (string) \WPFlatCore\Settings::get( 'business_name' );
+		$staff = current_user_can( 'manage_wpflatcore' );
 		status_header( 200 );
 		?>
 <!doctype html>
@@ -75,7 +75,7 @@ html,body{margin:0;height:100%;background:#f3f5f8;color:#0e121b;font:14px/1.5 -a
 .fp-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;height:48px;padding:0 16px;background:#fff;box-shadow:0 1px 0 rgba(14,18,27,.08)}
 .fp-bar b{font-size:15px}.fp-bar span{color:#525866;margin-right:12px}.fp-bar a{color:#222530;font-weight:600;text-decoration:none;margin-left:12px}
 .fp-main{height:calc(100% - 48px);padding:12px;box-sizing:border-box}
-.fp-main .bizyfiles-root{height:100%!important;max-height:none!important;margin:0!important;width:auto!important;left:auto!important;transform:none!important}
+.fp-main .wpflatfiles-root{height:100%!important;max-height:none!important;margin:0!important;width:auto!important;left:auto!important;transform:none!important}
 .note{max-width:520px;margin:12vh auto;background:#fff;border-radius:14px;padding:28px;box-shadow:0 18px 48px -22px rgba(14,18,27,.25)}.note h1{margin:0 0 8px;font-size:20px}
 </style>
 </head>

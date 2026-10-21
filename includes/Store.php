@@ -1,8 +1,8 @@
 <?php
-namespace BizyFiles;
+namespace WPFlatFiles;
 
-use BizyCore\Paths;
-use BizyCore\Services\Activity;
+use WPFlatCore\Paths;
+use WPFlatCore\Services\Activity;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -119,10 +119,10 @@ class Store {
 		$parent_id = (int) $parent_id;
 		$name      = self::clean_name( $name );
 		if ( '' === $name ) {
-			return new \WP_Error( 'bizyfiles_invalid', 'Give the folder a name.', array( 'status' => 400 ) );
+			return new \WP_Error( 'wpflatfiles_invalid', 'Give the folder a name.', array( 'status' => 400 ) );
 		}
 		if ( $parent_id && ! Access::folder( $parent_id ) ) {
-			return new \WP_Error( 'bizyfiles_not_found', 'The parent folder does not exist.', array( 'status' => 404 ) );
+			return new \WP_Error( 'wpflatfiles_not_found', 'The parent folder does not exist.', array( 'status' => 404 ) );
 		}
 		$now = self::now();
 		$ok  = $wpdb->insert( Install::table( 'folders' ), array(
@@ -137,7 +137,7 @@ class Store {
 			'updated_at'    => $now,
 		) );
 		if ( ! $ok ) {
-			return new \WP_Error( 'bizyfiles_db', 'The folder could not be created.', array( 'status' => 500 ) );
+			return new \WP_Error( 'wpflatfiles_db', 'The folder could not be created.', array( 'status' => 500 ) );
 		}
 		$id = (int) $wpdb->insert_id;
 		Access::reset();
@@ -154,13 +154,13 @@ class Store {
 		global $wpdb;
 		$f = Access::folder( $id );
 		if ( ! $f ) {
-			return new \WP_Error( 'bizyfiles_not_found', 'That folder does not exist.', array( 'status' => 404 ) );
+			return new \WP_Error( 'wpflatfiles_not_found', 'That folder does not exist.', array( 'status' => 404 ) );
 		}
 		$data = array( 'updated_at' => self::now() );
 		if ( isset( $in['name'] ) ) {
 			$n = self::clean_name( $in['name'] );
 			if ( '' === $n ) {
-				return new \WP_Error( 'bizyfiles_invalid', 'Give the folder a name.', array( 'status' => 400 ) );
+				return new \WP_Error( 'wpflatfiles_invalid', 'Give the folder a name.', array( 'status' => 400 ) );
 			}
 			$data['name'] = self::unique_folder_name( $f['parent_id'], $n, $id );
 		}
@@ -173,10 +173,10 @@ class Store {
 		if ( array_key_exists( 'parent_id', $in ) ) {
 			$np = (int) $in['parent_id'];
 			if ( $np === (int) $id || ( $np && in_array( (int) $id, Access::path_ids( $np ), true ) ) ) {
-				return new \WP_Error( 'bizyfiles_invalid', 'A folder cannot be moved into itself.', array( 'status' => 400 ) );
+				return new \WP_Error( 'wpflatfiles_invalid', 'A folder cannot be moved into itself.', array( 'status' => 400 ) );
 			}
 			if ( $np && ! Access::folder( $np ) ) {
-				return new \WP_Error( 'bizyfiles_not_found', 'The destination folder does not exist.', array( 'status' => 404 ) );
+				return new \WP_Error( 'wpflatfiles_not_found', 'The destination folder does not exist.', array( 'status' => 404 ) );
 			}
 			if ( $np !== $f['parent_id'] ) {
 				$data['parent_id'] = $np;
@@ -212,7 +212,7 @@ class Store {
 		global $wpdb;
 		$f = Access::folder( $id );
 		if ( ! $f ) {
-			return new \WP_Error( 'bizyfiles_not_found', 'That folder does not exist.', array( 'status' => 404 ) );
+			return new \WP_Error( 'wpflatfiles_not_found', 'That folder does not exist.', array( 'status' => 404 ) );
 		}
 		$ids = implode( ',', self::subtree_ids( $id ) );
 		$now = self::now();
@@ -255,16 +255,16 @@ class Store {
 		$name      = self::clean_name( $name );
 		if ( '' === $name || ! self::allowed( $name ) ) {
 			@unlink( $tmp_path ); // phpcs:ignore WordPress.WP.AlternativeFunctions,WordPress.PHP.NoSilencedErrors
-			return new \WP_Error( 'bizyfiles_type', 'That kind of file is not allowed here.', array( 'status' => 400 ) );
+			return new \WP_Error( 'wpflatfiles_type', 'That kind of file is not allowed here.', array( 'status' => 400 ) );
 		}
 		if ( ! is_file( $tmp_path ) ) {
-			return new \WP_Error( 'bizyfiles_upload', 'The upload is missing.', array( 'status' => 400 ) );
+			return new \WP_Error( 'wpflatfiles_upload', 'The upload is missing.', array( 'status' => 400 ) );
 		}
 		$ext    = self::ext( $name );
 		$stored = bin2hex( random_bytes( 16 ) ) . '.' . $ext;
 		$dest   = self::dir() . '/' . $stored;
 		if ( ! @rename( $tmp_path, $dest ) && ! ( @copy( $tmp_path, $dest ) && @unlink( $tmp_path ) ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions,WordPress.PHP.NoSilencedErrors
-			return new \WP_Error( 'bizyfiles_upload', 'The file could not be saved on the server.', array( 'status' => 500 ) );
+			return new \WP_Error( 'wpflatfiles_upload', 'The file could not be saved on the server.', array( 'status' => 500 ) );
 		}
 		@chmod( $dest, 0640 ); // phpcs:ignore WordPress.WP.AlternativeFunctions,WordPress.PHP.NoSilencedErrors
 		$size = (int) filesize( $dest );
@@ -277,13 +277,13 @@ class Store {
 			$file = self::file_row( $meta['file_id'] );
 			if ( ! $file ) {
 				@unlink( $dest ); // phpcs:ignore WordPress.WP.AlternativeFunctions,WordPress.PHP.NoSilencedErrors
-				return new \WP_Error( 'bizyfiles_not_found', 'That file does not exist.', array( 'status' => 404 ) );
+				return new \WP_Error( 'wpflatfiles_not_found', 'That file does not exist.', array( 'status' => 404 ) );
 			}
 			$v = (int) $file['version'] + 1;
 			$wpdb->insert( Install::table( 'versions' ), array( 'file_id' => (int) $file['id'], 'version' => $v, 'name' => $name, 'stored_name' => $stored, 'mime' => $mime, 'size' => $size, 'sha256' => $hash, 'note' => isset( $meta['note'] ) ? sanitize_text_field( $meta['note'] ) : '', 'uploaded_by' => $uid, 'created_at' => $now ) );
 			$wpdb->update( Install::table( 'files' ), array( 'stored_name' => $stored, 'mime' => $mime, 'size' => $size, 'sha256' => $hash, 'version' => $v, 'ext' => $ext, 'updated_at' => $now ), array( 'id' => (int) $file['id'] ) );
 			Activity::log( 'files', (int) $file['id'], 0, 'version', sprintf( 'New version (v%d) of %s', $v, $file['name'] ) );
-			do_action( 'bizyfiles_file_uploaded', self::file_row( $file['id'] ), true );
+			do_action( 'wpflatfiles_file_uploaded', self::file_row( $file['id'] ), true );
 			return self::file_row( $file['id'] );
 		}
 
@@ -305,13 +305,13 @@ class Store {
 		) );
 		if ( ! $ok ) {
 			@unlink( $dest ); // phpcs:ignore WordPress.WP.AlternativeFunctions,WordPress.PHP.NoSilencedErrors
-			return new \WP_Error( 'bizyfiles_db', 'The file could not be recorded.', array( 'status' => 500 ) );
+			return new \WP_Error( 'wpflatfiles_db', 'The file could not be recorded.', array( 'status' => 500 ) );
 		}
 		$id = (int) $wpdb->insert_id;
 		$wpdb->insert( Install::table( 'versions' ), array( 'file_id' => $id, 'version' => 1, 'name' => $name, 'stored_name' => $stored, 'mime' => $mime, 'size' => $size, 'sha256' => $hash, 'uploaded_by' => $uid, 'created_at' => $now ) );
 		Activity::log( 'files', $id, isset( $meta['client_id'] ) ? (int) $meta['client_id'] : 0, 'uploaded', 'File added: ' . $name );
 		$row = self::file_row( $id );
-		do_action( 'bizyfiles_file_uploaded', $row, false );
+		do_action( 'wpflatfiles_file_uploaded', $row, false );
 		return $row;
 	}
 
@@ -319,7 +319,7 @@ class Store {
 		global $wpdb;
 		$f = self::file_row( $id );
 		if ( ! $f ) {
-			return new \WP_Error( 'bizyfiles_not_found', 'That file does not exist.', array( 'status' => 404 ) );
+			return new \WP_Error( 'wpflatfiles_not_found', 'That file does not exist.', array( 'status' => 404 ) );
 		}
 		$data   = array( 'updated_at' => self::now() );
 		$folder = isset( $in['folder_id'] ) ? (int) $in['folder_id'] : (int) $f['folder_id'];
@@ -327,15 +327,15 @@ class Store {
 		if ( isset( $in['name'] ) ) {
 			$n = self::clean_name( $in['name'] );
 			if ( '' === $n ) {
-				return new \WP_Error( 'bizyfiles_invalid', 'Give the file a name.', array( 'status' => 400 ) );
+				return new \WP_Error( 'wpflatfiles_invalid', 'Give the file a name.', array( 'status' => 400 ) );
 			}
 			if ( '' === (string) $f['link_url'] && self::ext( $n ) !== self::ext( $f['name'] ) && ! self::allowed( $n ) ) {
-				return new \WP_Error( 'bizyfiles_type', 'That kind of file is not allowed here.', array( 'status' => 400 ) );
+				return new \WP_Error( 'wpflatfiles_type', 'That kind of file is not allowed here.', array( 'status' => 400 ) );
 			}
 			$name = $n;
 		}
 		if ( $folder !== (int) $f['folder_id'] && ! Access::folder( $folder ) ) {
-			return new \WP_Error( 'bizyfiles_not_found', 'The destination folder does not exist.', array( 'status' => 404 ) );
+			return new \WP_Error( 'wpflatfiles_not_found', 'The destination folder does not exist.', array( 'status' => 404 ) );
 		}
 		$data['name']      = self::unique_name( $folder, $name, $id );
 		$data['folder_id'] = $folder;
@@ -349,7 +349,7 @@ class Store {
 		if ( isset( $in['link_url'] ) && '' !== (string) $f['link_url'] ) {
 			$u = esc_url_raw( trim( (string) $in['link_url'] ), array( 'http', 'https' ) );
 			if ( '' === $u ) {
-				return new \WP_Error( 'bizyfiles_invalid', 'Enter a web address that starts with http:// or https://.', array( 'status' => 400 ) );
+				return new \WP_Error( 'wpflatfiles_invalid', 'Enter a web address that starts with http:// or https://.', array( 'status' => 400 ) );
 			}
 			$data['link_url'] = $u;
 		}
@@ -364,14 +364,14 @@ class Store {
 			return self::add_link( $folder_id, $f['name'], $f['link_url'], array( 'description' => $f['description'] ) );
 		}
 		if ( ! $f || ! is_readable( self::path( $f ) ) ) {
-			return new \WP_Error( 'bizyfiles_not_found', 'That file does not exist.', array( 'status' => 404 ) );
+			return new \WP_Error( 'wpflatfiles_not_found', 'That file does not exist.', array( 'status' => 404 ) );
 		}
 		if ( ! Access::folder( $folder_id ) ) {
-			return new \WP_Error( 'bizyfiles_not_found', 'The destination folder does not exist.', array( 'status' => 404 ) );
+			return new \WP_Error( 'wpflatfiles_not_found', 'The destination folder does not exist.', array( 'status' => 404 ) );
 		}
 		$tmp = self::dir() . '/.copy-' . bin2hex( random_bytes( 6 ) );
 		if ( ! @copy( self::path( $f ), $tmp ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions,WordPress.PHP.NoSilencedErrors
-			return new \WP_Error( 'bizyfiles_upload', 'The file could not be copied.', array( 'status' => 500 ) );
+			return new \WP_Error( 'wpflatfiles_upload', 'The file could not be copied.', array( 'status' => 500 ) );
 		}
 		return self::add_file( $folder_id, $f['name'], $tmp, array( 'mime' => $f['mime'], 'description' => $f['description'], 'tags' => $f['tags'] ) );
 	}
@@ -380,7 +380,7 @@ class Store {
 		global $wpdb;
 		$f = self::file_row( $id );
 		if ( ! $f ) {
-			return new \WP_Error( 'bizyfiles_not_found', 'That file does not exist.', array( 'status' => 404 ) );
+			return new \WP_Error( 'wpflatfiles_not_found', 'That file does not exist.', array( 'status' => 404 ) );
 		}
 		$wpdb->update( Install::table( 'files' ), array( 'deleted_at' => self::now(), 'trash_root' => 1 ), array( 'id' => (int) $id ) );
 		Activity::log( 'files', (int) $id, 0, 'trashed', 'File moved to the recycle bin: ' . $f['name'] );
@@ -433,10 +433,10 @@ class Store {
 		global $wpdb;
 		$url = esc_url_raw( trim( (string) $url ), array( 'http', 'https' ) );
 		if ( '' === $url || strlen( $url ) > 500 ) {
-			return new \WP_Error( 'bizyfiles_invalid', 'Enter a web address that starts with http:// or https://.', array( 'status' => 400 ) );
+			return new \WP_Error( 'wpflatfiles_invalid', 'Enter a web address that starts with http:// or https://.', array( 'status' => 400 ) );
 		}
 		if ( ! Access::folder( $folder_id ) ) {
-			return new \WP_Error( 'bizyfiles_not_found', 'That folder does not exist.', array( 'status' => 404 ) );
+			return new \WP_Error( 'wpflatfiles_not_found', 'That folder does not exist.', array( 'status' => 404 ) );
 		}
 		$name = self::clean_name( $name );
 		if ( '' === $name ) {
@@ -459,7 +459,7 @@ class Store {
 			'updated_at'  => $now,
 		) );
 		if ( ! $ok ) {
-			return new \WP_Error( 'bizyfiles_db', 'The link could not be saved.', array( 'status' => 500 ) );
+			return new \WP_Error( 'wpflatfiles_db', 'The link could not be saved.', array( 'status' => 500 ) );
 		}
 		$id = (int) $wpdb->insert_id;
 		Activity::log( 'files', $id, 0, 'uploaded', 'Link added: ' . $name );
@@ -478,11 +478,11 @@ class Store {
 		global $wpdb;
 		$src = Access::folder( $id );
 		if ( ! $src ) {
-			return new \WP_Error( 'bizyfiles_not_found', 'That folder does not exist.', array( 'status' => 404 ) );
+			return new \WP_Error( 'wpflatfiles_not_found', 'That folder does not exist.', array( 'status' => 404 ) );
 		}
 		$dest_parent = (int) $dest_parent;
 		if ( $dest_parent && ( $dest_parent === (int) $id || in_array( (int) $id, Access::path_ids( $dest_parent ), true ) ) ) {
-			return new \WP_Error( 'bizyfiles_invalid', 'A folder cannot be copied into itself.', array( 'status' => 400 ) );
+			return new \WP_Error( 'wpflatfiles_invalid', 'A folder cannot be copied into itself.', array( 'status' => 400 ) );
 		}
 		$count = 0;
 		$top   = self::copy_folder_into( $src, $dest_parent, $viewer, true, $count );
@@ -492,7 +492,7 @@ class Store {
 	private static function copy_folder_into( array $src, $dest_parent, array $viewer, $is_top, &$count ) {
 		global $wpdb;
 		if ( ++$count > 5000 ) {
-			return new \WP_Error( 'bizyfiles_invalid', 'That folder is too big to copy in one go.', array( 'status' => 400 ) );
+			return new \WP_Error( 'wpflatfiles_invalid', 'That folder is too big to copy in one go.', array( 'status' => 400 ) );
 		}
 		$new = self::create_folder( $dest_parent, $src['name'] . ( $is_top ? ' - Copy' : '' ), array( 'color' => $src['color'], 'description' => $src['description'], 'inherit' => 1 ) );
 		if ( is_wp_error( $new ) ) {
@@ -543,7 +543,7 @@ class Store {
 		$f = self::file_row( $file_id );
 		$v = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM ' . Install::table( 'versions' ) . ' WHERE file_id=%d AND version=%d', (int) $file_id, (int) $version ), ARRAY_A ); // phpcs:ignore WordPress.DB
 		if ( ! $f || ! $v || ! is_readable( self::dir() . '/' . basename( $v['stored_name'] ) ) ) {
-			return new \WP_Error( 'bizyfiles_not_found', 'That version is not available.', array( 'status' => 404 ) );
+			return new \WP_Error( 'wpflatfiles_not_found', 'That version is not available.', array( 'status' => 404 ) );
 		}
 		$tmp = self::dir() . '/.copy-' . bin2hex( random_bytes( 6 ) );
 		@copy( self::dir() . '/' . basename( $v['stored_name'] ), $tmp ); // phpcs:ignore WordPress.WP.AlternativeFunctions,WordPress.PHP.NoSilencedErrors
@@ -581,7 +581,7 @@ class Store {
 		if ( 'folder' === $type ) {
 			$f = self::folder_row( $id );
 			if ( ! $f || null === $f['deleted_at'] ) {
-				return new \WP_Error( 'bizyfiles_not_found', 'That item is not in the recycle bin.', array( 'status' => 404 ) );
+				return new \WP_Error( 'wpflatfiles_not_found', 'That item is not in the recycle bin.', array( 'status' => 404 ) );
 			}
 			$at  = $f['deleted_at'];
 			$ids = implode( ',', self::subtree_ids( $id, true ) );
@@ -596,7 +596,7 @@ class Store {
 		}
 		$f = self::file_row( $id );
 		if ( ! $f || null === $f['deleted_at'] ) {
-			return new \WP_Error( 'bizyfiles_not_found', 'That item is not in the recycle bin.', array( 'status' => 404 ) );
+			return new \WP_Error( 'wpflatfiles_not_found', 'That item is not in the recycle bin.', array( 'status' => 404 ) );
 		}
 		$folder = Access::folder( $f['folder_id'] ) ? (int) $f['folder_id'] : 0;
 		$wpdb->update( Install::table( 'files' ), array( 'deleted_at' => null, 'trash_root' => 0, 'folder_id' => $folder, 'name' => self::unique_name( $folder, $f['name'], $id ) ), array( 'id' => $id ) );
@@ -614,7 +614,7 @@ class Store {
 		$wpdb->delete( Install::table( 'versions' ), array( 'file_id' => (int) $f['id'] ) );
 		$wpdb->delete( Install::table( 'shares' ), array( 'file_id' => (int) $f['id'] ) );
 		$wpdb->delete( Install::table( 'files' ), array( 'id' => (int) $f['id'] ) );
-		do_action( 'bizyfiles_file_purged', (int) $f['id'] );
+		do_action( 'wpflatfiles_file_purged', (int) $f['id'] );
 	}
 
 	public static function purge( $type, $id ) {
@@ -623,14 +623,14 @@ class Store {
 		if ( 'file' === $type ) {
 			$f = self::file_row( $id );
 			if ( ! $f || null === $f['deleted_at'] ) {
-				return new \WP_Error( 'bizyfiles_not_found', 'That item is not in the recycle bin.', array( 'status' => 404 ) );
+				return new \WP_Error( 'wpflatfiles_not_found', 'That item is not in the recycle bin.', array( 'status' => 404 ) );
 			}
 			self::purge_file( $f );
 			return true;
 		}
 		$f = self::folder_row( $id );
 		if ( ! $f || null === $f['deleted_at'] ) {
-			return new \WP_Error( 'bizyfiles_not_found', 'That item is not in the recycle bin.', array( 'status' => 404 ) );
+			return new \WP_Error( 'wpflatfiles_not_found', 'That item is not in the recycle bin.', array( 'status' => 404 ) );
 		}
 		$ids = self::subtree_ids( $id, true );
 		$in  = implode( ',', $ids );

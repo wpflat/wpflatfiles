@@ -1,20 +1,20 @@
 <?php
-namespace BizyFiles;
+namespace WPFlatFiles;
 
 defined( 'ABSPATH' ) || exit;
 
-/** BizyFiles' tables. */
+/** WPFlat Files' tables. */
 class Install {
 
 	const DB_VERSION = '2';
-	const OPTION     = 'bizyfiles_db_version';
+	const OPTION     = 'wpflatfiles_db_version';
 
-	/** Short names of the tables (without the WordPress prefix and "bizyfiles_"). */
+	/** Short names of the tables (without the WordPress prefix and "wpflatfiles_"). */
 	const TABLES = array( 'folders', 'files', 'versions', 'access', 'shares' );
 
 	public static function table( $name ) {
 		global $wpdb;
-		return $wpdb->prefix . 'bizyfiles_' . $name;
+		return $wpdb->prefix . 'wpflatfiles_' . $name;
 	}
 
 	/** Cheap check on every request so an updated plugin upgrades itself. */

@@ -6,7 +6,7 @@ import FilesSettingsRoute from './views/FilesSettingsRoute.vue';
 import FilesSettings from './settings/FilesSettings.vue';
 import HomeStats from './slots/HomeStats.vue';
 
-/** BizyFiles registers its screens and what it adds to BizyCore's pages. The explorer itself is a separate script, loaded when /files opens. */
+/** WPFlat Files registers its screens and what it adds to WPFlat Core's pages. The explorer itself is a separate script, loaded when /files opens. */
 const M = 'files';
 sdk.registerIcon( 'files', Files );
 

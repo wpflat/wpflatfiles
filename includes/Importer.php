@@ -1,12 +1,12 @@
 <?php
-namespace BizyFiles;
+namespace WPFlatFiles;
 
-use BizyCore\Services\Activity;
+use WPFlatCore\Services\Activity;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Brings an existing folder tree on the server into BizyFiles (for example the folders another file-manager plugin made).
+ * Brings an existing folder tree on the server into WPFlat Files (for example the folders another file-manager plugin made).
  * Folders are recreated, files are moved, hard-linked or copied in, and every step is written to a manifest so a move can be
  * undone. Work is done in time-boxed steps, so a big tree is fine on hosts with short time limits: call step() until done.
  *
@@ -15,7 +15,7 @@ defined( 'ABSPATH' ) || exit;
  */
 class Importer {
 
-	const OPTION = 'bizyfiles_import_jobs';
+	const OPTION = 'wpflatfiles_import_jobs';
 
 	/** Names never imported. */
 	const SKIP_NAMES = array( 'thumbs.db', 'desktop.ini', '.ds_store', 'index.php', 'index.html', '.htaccess' );
@@ -36,7 +36,7 @@ class Importer {
 		return isset( $all[ $id ] ) ? $all[ $id ] : null;
 	}
 
-	/** Only folders inside this WordPress install, and never BizyFiles' own storage. */
+	/** Only folders inside this WordPress install, and never WPFlat Files' own storage. */
 	public static function source_ok( $dir ) {
 		$real = realpath( (string) $dir );
 		if ( ! $real || ! is_dir( $real ) ) {
@@ -69,7 +69,7 @@ class Importer {
 	/** Count what an import would do, without changing anything. */
 	public static function scan( $dir ) {
 		if ( ! self::source_ok( $dir ) ) {
-			return new \WP_Error( 'bizyfiles_import', 'That folder cannot be imported (it must be inside this site and not BizyFiles\' own storage).', array( 'status' => 400 ) );
+			return new \WP_Error( 'wpflatfiles_import', 'That folder cannot be imported (it must be inside this site and not WPFlatFiles\' own storage).', array( 'status' => 400 ) );
 		}
 		$out = array( 'folders' => 0, 'files' => 0, 'bytes' => 0, 'skipped' => array(), 'skipped_count' => 0, 'deepest' => 0 );
 		$walk = function ( $d, $depth ) use ( &$walk, &$out ) {
@@ -103,16 +103,16 @@ class Importer {
 	 * Start an import.
 	 *
 	 * @param string $dir       Folder to import (its CONTENTS become folders under $parent).
-	 * @param int    $parent    BizyFiles folder to import into (0 = top level).
+	 * @param int    $parent    WPFlat Files folder to import into (0 = top level).
 	 * @param string $mode      move | link | copy
 	 * @param array  $opts      top (name for a folder that wraps the whole import; '' = no wrapper)
 	 */
 	public static function start( $dir, $parent, $mode, array $opts = array() ) {
 		if ( ! self::source_ok( $dir ) ) {
-			return new \WP_Error( 'bizyfiles_import', 'That folder cannot be imported.', array( 'status' => 400 ) );
+			return new \WP_Error( 'wpflatfiles_import', 'That folder cannot be imported.', array( 'status' => 400 ) );
 		}
 		if ( ! in_array( $mode, array( 'move', 'link', 'copy' ), true ) ) {
-			return new \WP_Error( 'bizyfiles_import', 'Choose move, link or copy.', array( 'status' => 400 ) );
+			return new \WP_Error( 'wpflatfiles_import', 'Choose move, link or copy.', array( 'status' => 400 ) );
 		}
 		$id   = bin2hex( random_bytes( 5 ) );
 		$root = (int) $parent;
@@ -157,7 +157,7 @@ class Importer {
 		global $wpdb;
 		$job = self::get( $id );
 		if ( ! $job ) {
-			return new \WP_Error( 'bizyfiles_import', 'That import does not exist.', array( 'status' => 404 ) );
+			return new \WP_Error( 'wpflatfiles_import', 'That import does not exist.', array( 'status' => 404 ) );
 		}
 		if ( $job['done'] ) {
 			return $job;
@@ -252,7 +252,7 @@ class Importer {
 	}
 
 	/**
-	 * Bring in one file that is still in the source tree (for example one added while an import was running), into a BizyFiles
+	 * Bring in one file that is still in the source tree (for example one added while an import was running), into a WPFlat Files
 	 * folder you name. Same rules as the import: allowed types only; $mode is move, link or copy.
 	 *
 	 * @return array|\WP_Error the file row
@@ -262,11 +262,11 @@ class Importer {
 		$path = wp_normalize_path( (string) realpath( $path ) );
 		$dir  = dirname( $path );
 		if ( '' === $path || ! is_file( $path ) || ! self::source_ok( $dir ) ) {
-			return new \WP_Error( 'bizyfiles_import', 'That file cannot be imported.', array( 'status' => 400 ) );
+			return new \WP_Error( 'wpflatfiles_import', 'That file cannot be imported.', array( 'status' => 400 ) );
 		}
 		$n = basename( $path );
 		if ( '' !== self::skip_reason( $n, false ) || ! Access::folder( $folder_id ) ) {
-			return new \WP_Error( 'bizyfiles_import', 'That file or folder is not allowed.', array( 'status' => 400 ) );
+			return new \WP_Error( 'wpflatfiles_import', 'That file or folder is not allowed.', array( 'status' => 400 ) );
 		}
 		$name   = Store::clean_name( $n );
 		$ext    = Store::ext( $n );
@@ -280,7 +280,7 @@ class Importer {
 			$ok = @copy( $path, $dest ); // phpcs:ignore WordPress.WP.AlternativeFunctions,WordPress.PHP.NoSilencedErrors
 		}
 		if ( ! $ok || ! is_file( $dest ) ) {
-			return new \WP_Error( 'bizyfiles_import', 'The file could not be transferred.', array( 'status' => 500 ) );
+			return new \WP_Error( 'wpflatfiles_import', 'The file could not be transferred.', array( 'status' => 500 ) );
 		}
 		@chmod( $dest, 0640 ); // phpcs:ignore WordPress.WP.AlternativeFunctions,WordPress.PHP.NoSilencedErrors
 		$hash = hash_file( 'sha256', $dest );
@@ -291,18 +291,18 @@ class Importer {
 		$fid = (int) $wpdb->insert_id;
 		if ( ! $fid ) {
 			@unlink( $dest ); // phpcs:ignore WordPress.WP.AlternativeFunctions,WordPress.PHP.NoSilencedErrors
-			return new \WP_Error( 'bizyfiles_db', 'The file could not be recorded.', array( 'status' => 500 ) );
+			return new \WP_Error( 'wpflatfiles_db', 'The file could not be recorded.', array( 'status' => 500 ) );
 		}
 		$wpdb->insert( Install::table( 'versions' ), array( 'file_id' => $fid, 'version' => 1, 'name' => $name, 'stored_name' => $stored, 'mime' => $mime, 'size' => $size, 'sha256' => $hash, 'uploaded_by' => get_current_user_id(), 'created_at' => $when ) ); // phpcs:ignore WordPress.DB
 		return Store::file_row( $fid );
 	}
 
-	/** Reverse an import: a move puts the files back where they came from; every mode removes what it added to BizyFiles. */
+	/** Reverse an import: a move puts the files back where they came from; every mode removes what it added to WPFlat Files. */
 	public static function undo( $id ) {
 		global $wpdb;
 		$job = self::get( $id );
 		if ( ! $job || ! is_file( $job['manifest'] ) ) {
-			return new \WP_Error( 'bizyfiles_import', 'That import cannot be undone (no record of it).', array( 'status' => 404 ) );
+			return new \WP_Error( 'wpflatfiles_import', 'That import cannot be undone (no record of it).', array( 'status' => 404 ) );
 		}
 		$back = 0; $gone = 0; $lost = array();
 		$rows = array_reverse( array_filter( array_map( function ( $l ) {
@@ -348,6 +348,6 @@ class Importer {
 /** Where a job's manifest lives (a private file next to the stored files). */
 class Paths_Helper {
 	public static function manifest( $id ) {
-		return \BizyCore\Paths::dir( 'files-import' ) . '/import-' . preg_replace( '/[^a-f0-9]/', '', $id ) . '.ndjson';
+		return \WPFlatCore\Paths::dir( 'files-import' ) . '/import-' . preg_replace( '/[^a-f0-9]/', '', $id ) . '.ndjson';
 	}
 }

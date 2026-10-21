@@ -1,5 +1,5 @@
 /** Drag and drop: files from the desktop (upload) and items inside the explorer (move, or copy with Ctrl). */
-export const TYPE = 'application/x-bizyfiles';
+export const TYPE = 'application/x-wpflatfiles';
 const types = ( e ) => [ ...( ( e.dataTransfer && e.dataTransfer.types ) || [] ) ];
 export const isFileDrag = ( e ) => types( e ).includes( 'Files' );
 export const isInternal = ( e ) => types( e ).includes( TYPE );

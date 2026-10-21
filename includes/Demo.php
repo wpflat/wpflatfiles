@@ -1,22 +1,22 @@
 <?php
-namespace BizyFiles;
+namespace WPFlatFiles;
 
-use BizyCore\Services\Demo as Core_Demo;
+use WPFlatCore\Services\Demo as Core_Demo;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * BizyFiles' part of the sample data: a school-style library (classes, assignments, policies, a gallery, staff-only
+ * WPFlat Files' part of the sample data: a school-style library (classes, assignments, policies, a gallery, staff-only
  * notes) with real files made on the spot — PDFs, images, a sound, text and spreadsheets — and folder rules that use the
  * sample groups, so the sample login sees some folders and not others.
  */
 class Demo {
 
-	const OPTION = 'bizyfiles_demo_files';
+	const OPTION = 'wpflatfiles_demo_files';
 
 	public static function init() {
-		add_action( 'bizycore_demo_load', array( __CLASS__, 'load' ), 40 );
-		add_action( 'bizycore_demo_cleared', array( __CLASS__, 'cleared' ) );
+		add_action( 'wpflatcore_demo_load', array( __CLASS__, 'load' ), 40 );
+		add_action( 'wpflatcore_demo_cleared', array( __CLASS__, 'cleared' ) );
 	}
 
 	/* ───────────────────────── File makers ───────────────────────── */
@@ -88,9 +88,9 @@ class Demo {
 	/* ───────────────────────── Loading ───────────────────────── */
 
 	private static function folder( $parent, $name, $inherit, array $rules, $color = '' ) {
-		$id = Core_Demo::add( 'bizyfiles_folders', array( 'parent_id' => $parent, 'name' => $name, 'color' => $color, 'inherit' => $parent ? (int) $inherit : 0 ) );
+		$id = Core_Demo::add( 'wpflatfiles_folders', array( 'parent_id' => $parent, 'name' => $name, 'color' => $color, 'inherit' => $parent ? (int) $inherit : 0 ) );
 		foreach ( $rules as $r ) {
-			Core_Demo::add( 'bizyfiles_access', array( 'folder_id' => $id, 'subject_type' => $r[0], 'subject_id' => $r[1], 'level' => $r[2] ) );
+			Core_Demo::add( 'wpflatfiles_access', array( 'folder_id' => $id, 'subject_type' => $r[0], 'subject_id' => $r[1], 'level' => $r[2] ) );
 		}
 		return $id;
 	}
@@ -101,8 +101,8 @@ class Demo {
 		file_put_contents( Store::dir() . '/' . $stored, $bytes ); // phpcs:ignore WordPress.WP.AlternativeFunctions
 		$when = gmdate( 'Y-m-d H:i:s', time() - $days_ago * DAY_IN_SECONDS );
 		$mime = Store::mime_for( $name );
-		$id   = Core_Demo::add( 'bizyfiles_files', array( 'folder_id' => $folder, 'name' => $name, 'ext' => $ext, 'stored_name' => $stored, 'mime' => $mime, 'size' => strlen( $bytes ), 'sha256' => hash( 'sha256', $bytes ), 'version' => 1, 'description' => $description, 'uploaded_by' => get_current_user_id(), 'created_at' => $when, 'updated_at' => $when ) );
-		Core_Demo::add( 'bizyfiles_versions', array( 'file_id' => $id, 'version' => 1, 'name' => $name, 'stored_name' => $stored, 'mime' => $mime, 'size' => strlen( $bytes ), 'sha256' => hash( 'sha256', $bytes ), 'uploaded_by' => get_current_user_id(), 'created_at' => $when ) );
+		$id   = Core_Demo::add( 'wpflatfiles_files', array( 'folder_id' => $folder, 'name' => $name, 'ext' => $ext, 'stored_name' => $stored, 'mime' => $mime, 'size' => strlen( $bytes ), 'sha256' => hash( 'sha256', $bytes ), 'version' => 1, 'description' => $description, 'uploaded_by' => get_current_user_id(), 'created_at' => $when, 'updated_at' => $when ) );
+		Core_Demo::add( 'wpflatfiles_versions', array( 'file_id' => $id, 'version' => 1, 'name' => $name, 'stored_name' => $stored, 'mime' => $mime, 'size' => strlen( $bytes ), 'sha256' => hash( 'sha256', $bytes ), 'uploaded_by' => get_current_user_id(), 'created_at' => $when ) );
 		$list   = get_option( self::OPTION, array() );
 		$list[] = $stored;
 		update_option( self::OPTION, $list, false );
@@ -110,7 +110,7 @@ class Demo {
 	}
 
 	public static function load( $ctx ) {
-		if ( ! \BizyCore\Registry::enabled( 'files' ) || empty( $ctx['groups'] ) ) {
+		if ( ! \WPFlatCore\Registry::enabled( 'files' ) || empty( $ctx['groups'] ) ) {
 			return;
 		}
 		delete_option( self::OPTION );

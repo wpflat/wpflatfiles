@@ -1,7 +1,7 @@
-/* BizyFiles explorer. Everything hangs off the variables of .fx-root[data-theme]; a theme is a set of variables plus a few layout rules at the end. */
+/* WPFlat Files explorer. Everything hangs off the variables of .fx-root[data-theme]; a theme is a set of variables plus a few layout rules at the end. */
 
-.bizyfiles-root { height: max(520px, calc(100vh - 190px)); min-height: 520px; }
-.bizyfiles-root.bizyfiles-app { height: 100%; min-height: 0; }
+.wpflatfiles-root { height: max(520px, calc(100vh - 190px)); min-height: 520px; }
+.wpflatfiles-root.wpflatfiles-app { height: 100%; min-height: 0; }
 
 .fx-root, .fx-root *, .fx-root *::before, .fx-root *::after { box-sizing: border-box; }
 .fx-root {

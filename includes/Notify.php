@@ -1,9 +1,9 @@
 <?php
-namespace BizyFiles;
+namespace WPFlatFiles;
 
-use BizyCore\Portal;
-use BizyCore\Services\Groups;
-use BizyCore\Services\Notifications as N;
+use WPFlatCore\Portal;
+use WPFlatCore\Services\Groups;
+use WPFlatCore\Services\Notifications as N;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -11,7 +11,7 @@ defined( 'ABSPATH' ) || exit;
 class Notify {
 
 	public static function init() {
-		add_action( 'bizyfiles_file_uploaded', array( __CLASS__, 'uploaded' ), 10, 2 );
+		add_action( 'wpflatfiles_file_uploaded', array( __CLASS__, 'uploaded' ), 10, 2 );
 	}
 
 	public static function types() {
@@ -38,7 +38,7 @@ class Notify {
 		}
 		$v = Access::viewer();
 		if ( ! $v['staff'] ) {
-			N::emit( 'team_file_uploaded', N::users_with( 'bizyfiles_manage' ), 'File uploaded: ' . $file['name'], 'A user added a file.', '/files?folder=' . (int) $file['folder_id'], 0, 'file', (int) $file['id'], 'fup:' . $file['id'] );
+			N::emit( 'team_file_uploaded', N::users_with( 'wpflatfiles_manage' ), 'File uploaded: ' . $file['name'], 'A user added a file.', '/files?folder=' . (int) $file['folder_id'], 0, 'file', (int) $file['id'], 'fup:' . $file['id'] );
 			return;
 		}
 		// People who hold a role linked to a group the folder is shared with

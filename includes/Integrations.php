@@ -1,20 +1,20 @@
 <?php
-namespace BizyFiles;
+namespace WPFlatFiles;
 
-use BizyCore\Links;
-use BizyCore\Registry;
+use WPFlatCore\Links;
+use WPFlatCore\Registry;
 
 defined( 'ABSPATH' ) || exit;
 
-/** How BizyFiles shows up in BizyCore's shared places: links, search, clean-up when clients or groups go away. */
+/** How WPFlat Files shows up in WPFlat Core's shared places: links, search, clean-up when clients or groups go away. */
 class Integrations {
 
 	public static function init() {
-		add_filter( 'bizycore_search', array( __CLASS__, 'search' ), 10, 2 );
-		add_filter( 'bizycore_meta', array( __CLASS__, 'meta' ) );
-		add_action( 'bizycore_client_deleted', array( __CLASS__, 'client_deleted' ) );
-		add_action( 'bizycore_group_deleted', array( __CLASS__, 'group_deleted' ) );
-		add_filter( 'bizycore_home', array( __CLASS__, 'home' ) );
+		add_filter( 'wpflatcore_search', array( __CLASS__, 'search' ), 10, 2 );
+		add_filter( 'wpflatcore_meta', array( __CLASS__, 'meta' ) );
+		add_action( 'wpflatcore_client_deleted', array( __CLASS__, 'client_deleted' ) );
+		add_action( 'wpflatcore_group_deleted', array( __CLASS__, 'group_deleted' ) );
+		add_filter( 'wpflatcore_home', array( __CLASS__, 'home' ) );
 	}
 
 	private static function on() {

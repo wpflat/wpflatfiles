@@ -1,17 +1,17 @@
-# BizyFiles REST API (for the explorer UI)
+# WPFlat Files REST API (for the explorer UI)
 
-All routes live under the BizyCore REST base (`bizycore/v1`), reached through the neutral address `Urls::api()` (e.g. `https://site/bd/api`).
+All routes live under the WPFlat Core REST base (`wpflatcore/v1`), reached through the neutral address `Urls::api()` (e.g. `https://site/bd/api`).
 Auth is the WordPress cookie plus the `X-WP-Nonce` header (nonce = `wp_create_nonce('wp_rest')`). JSON in, JSON out.
-Staff previewing the portal as a client send `X-Bizy-As: <client id>` on every request (the server then answers as that client).
+Staff previewing the portal as a client send `X-WPFlat-As: <client id>` on every request (the server then answers as that client).
 Errors are `{ code, message, data: { status } }` with 4xx status.
 
 ## Boot (portal / front end)
-The portal page prints a mount point and `window.BizyFilesBoot`:
+The portal page prints a mount point and `window.WPFlatFilesBoot`:
 ```
 { mode: 'portal'|'app', api: 'https://site/bd/api', nonce: '…', as: <client id|undefined>, brand: 'Business name', config: <GET /fm/config> }
 ```
-and loads `bizyfiles-explorer.js` / `bizyfiles-explorer.css` (one standalone script that bundles its own Vue; it mounts into `#bizyfiles-root`).
-The staff app (BizyCore's Vue shell) mounts the same explorer by calling `window.BizyFilesExplorer.mount( el, boot )` after loading the same script.
+and loads `wpflatfiles-explorer.js` / `wpflatfiles-explorer.css` (one standalone script that bundles its own Vue; it mounts into `#wpflatfiles-root`).
+The staff app (WPFlat Core's Vue shell) mounts the same explorer by calling `window.WPFlatFilesExplorer.mount( el, boot )` after loading the same script.
 
 ## Concepts
 - Folders form a tree. A person only sees folders they have a level on; hidden folders do not appear anywhere (tree, list, search, breadcrumbs).
@@ -19,7 +19,7 @@ The staff app (BizyCore's Vue shell) mounts the same explorer by calling `window
   - view: see and download. upload: also add files. edit: also create folders, rename, move, delete, share links. manage: also change who has access.
 - `inherit`: a folder either uses its parent's access (`true`) or has its own rules (`false`). Top-level folders always have their own.
 - Rule: `{ type: 'team'|'users'|'group'|'client', id, level: 'view'|'upload'|'edit'|'manage' }` (`team` and `users` have id 0).
-  Words: "group" and "client" are renamable by the owner (Class, Cohort, Student, Learner…): the explorer must take the labels from `BizyCore.t`/`tp`
+  Words: "group" and "client" are renamable by the owner (Class, Cohort, Student, Learner…): the explorer must take the labels from `WPFlatCore.t`/`tp`
   in the app; in the portal use the labels in `config.words` ({ client: {s,p}, group: {s,p} }) — **the server sends these in config.words**.
 - Deleting moves to the recycle bin (restorable); the bin purges itself after `trash_days`.
 

@@ -15,7 +15,7 @@ const start = async () => {
 	state.value = 'loading';
 	try {
 		const [ Explorer, config ] = await Promise.all( [ loadExplorer(), api.getPath( 'fm/config' ) ] );
-		const boot = window.bizycoreBoot || {};
+		const boot = window.wpflatcoreBoot || {};
 		current = Number( props.query.folder ) || 0;
 		state.value = 'ready';
 		inst = Explorer.mount( host.value, {
@@ -56,7 +56,7 @@ watch( () => props.query.folder, ( v ) => {
 		<el-alert v-if="state === 'error'" type="error" show-icon :closable="false" :title="error">
 			<el-button size="small" @click="start">Try again</el-button>
 		</el-alert>
-		<div v-show="state === 'ready'" ref="host" class="bizyfiles-root bizyfiles-app bd-files-explorer__host"></div>
+		<div v-show="state === 'ready'" ref="host" class="wpflatfiles-root wpflatfiles-app bd-files-explorer__host"></div>
 	</div>
 </template>
 

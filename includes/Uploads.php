@@ -1,7 +1,7 @@
 <?php
-namespace BizyFiles;
+namespace WPFlatFiles;
 
-use BizyCore\Paths;
+use WPFlatCore\Paths;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -34,11 +34,11 @@ class Uploads {
 		$name = Store::clean_name( isset( $p['name'] ) ? $p['name'] : '' );
 		$size = isset( $p['size'] ) ? (int) $p['size'] : 0;
 		if ( '' === $name || ! Store::allowed( $name ) ) {
-			return new \WP_Error( 'bizyfiles_type', 'That kind of file is not allowed here.', array( 'status' => 400 ) );
+			return new \WP_Error( 'wpflatfiles_type', 'That kind of file is not allowed here.', array( 'status' => 400 ) );
 		}
 		$max = (int) Settings::get( 'max_mb' ) * MB_IN_BYTES;
 		if ( $size < 0 || $size > $max ) {
-			return new \WP_Error( 'bizyfiles_size', sprintf( 'That file is too large (limit %d MB).', (int) Settings::get( 'max_mb' ) ), array( 'status' => 413 ) );
+			return new \WP_Error( 'wpflatfiles_size', sprintf( 'That file is too large (limit %d MB).', (int) Settings::get( 'max_mb' ) ), array( 'status' => 413 ) );
 		}
 		$id = bin2hex( random_bytes( 12 ) );
 		$st = array(
@@ -54,13 +54,13 @@ class Uploads {
 			'path'      => self::tmp_dir() . '/' . $id . '.part',
 		);
 		file_put_contents( $st['path'], '' ); // phpcs:ignore WordPress.WP.AlternativeFunctions
-		set_transient( 'bizyfiles_up_' . $id, $st, self::TTL );
+		set_transient( 'wpflatfiles_up_' . $id, $st, self::TTL );
 		return array( 'upload_id' => $id, 'chunk_size' => self::chunk_size() );
 	}
 
 	public static function state( $id ) {
 		$id = preg_replace( '/[^a-f0-9]/', '', (string) $id );
-		$st = $id ? get_transient( 'bizyfiles_up_' . $id ) : false;
+		$st = $id ? get_transient( 'wpflatfiles_up_' . $id ) : false;
 		return ( is_array( $st ) && (int) $st['user'] === get_current_user_id() ) ? $st : null;
 	}
 
@@ -69,34 +69,34 @@ class Uploads {
 		$id = preg_replace( '/[^a-f0-9]/', '', (string) $upload_id );
 		$st = self::state( $id );
 		if ( ! $st ) {
-			return new \WP_Error( 'bizyfiles_upload', 'This upload has expired. Please start it again.', array( 'status' => 410 ) );
+			return new \WP_Error( 'wpflatfiles_upload', 'This upload has expired. Please start it again.', array( 'status' => 410 ) );
 		}
 		$index = (int) $index;
 		if ( empty( $file['tmp_name'] ) || ! empty( $file['error'] ) || ! is_uploaded_file( $file['tmp_name'] ) ) {
-			return new \WP_Error( 'bizyfiles_upload', 'The piece did not arrive. Please try again.', array( 'status' => 400 ) );
+			return new \WP_Error( 'wpflatfiles_upload', 'The piece did not arrive. Please try again.', array( 'status' => 400 ) );
 		}
 		if ( $index === (int) $st['next'] - 1 ) {
 			return array( 'received' => (int) $st['received'], 'next' => (int) $st['next'] ); // a repeat of the piece we already have
 		}
 		if ( $index !== (int) $st['next'] ) {
-			return new \WP_Error( 'bizyfiles_upload', 'The pieces arrived out of order. Please try again.', array( 'status' => 409, 'next' => (int) $st['next'] ) );
+			return new \WP_Error( 'wpflatfiles_upload', 'The pieces arrived out of order. Please try again.', array( 'status' => 409, 'next' => (int) $st['next'] ) );
 		}
 		$len = (int) filesize( $file['tmp_name'] );
 		if ( (int) $st['received'] + $len > (int) Settings::get( 'max_mb' ) * MB_IN_BYTES ) {
 			self::abort( $id );
-			return new \WP_Error( 'bizyfiles_size', 'That file is too large.', array( 'status' => 413 ) );
+			return new \WP_Error( 'wpflatfiles_size', 'That file is too large.', array( 'status' => 413 ) );
 		}
 		$in  = fopen( $file['tmp_name'], 'rb' ); // phpcs:ignore WordPress.WP.AlternativeFunctions
 		$out = fopen( $st['path'], 'ab' ); // phpcs:ignore WordPress.WP.AlternativeFunctions
 		if ( ! $in || ! $out ) {
-			return new \WP_Error( 'bizyfiles_upload', 'The server could not store the piece.', array( 'status' => 500 ) );
+			return new \WP_Error( 'wpflatfiles_upload', 'The server could not store the piece.', array( 'status' => 500 ) );
 		}
 		stream_copy_to_stream( $in, $out );
 		fclose( $in ); // phpcs:ignore WordPress.WP.AlternativeFunctions
 		fclose( $out ); // phpcs:ignore WordPress.WP.AlternativeFunctions
 		$st['received'] += $len;
 		$st['next']     += 1;
-		set_transient( 'bizyfiles_up_' . $id, $st, self::TTL );
+		set_transient( 'wpflatfiles_up_' . $id, $st, self::TTL );
 		return array( 'received' => (int) $st['received'], 'next' => (int) $st['next'] );
 	}
 
@@ -105,24 +105,24 @@ class Uploads {
 		$id = preg_replace( '/[^a-f0-9]/', '', (string) $upload_id );
 		$st = self::state( $id );
 		if ( ! $st ) {
-			return new \WP_Error( 'bizyfiles_upload', 'This upload has expired. Please start it again.', array( 'status' => 410 ) );
+			return new \WP_Error( 'wpflatfiles_upload', 'This upload has expired. Please start it again.', array( 'status' => 410 ) );
 		}
 		clearstatcache( true, $st['path'] );
 		if ( (int) $st['size'] && (int) filesize( $st['path'] ) !== (int) $st['size'] ) {
 			self::abort( $id );
-			return new \WP_Error( 'bizyfiles_upload', 'The file arrived incomplete. Please upload it again.', array( 'status' => 400 ) );
+			return new \WP_Error( 'wpflatfiles_upload', 'The file arrived incomplete. Please upload it again.', array( 'status' => 400 ) );
 		}
-		delete_transient( 'bizyfiles_up_' . $id );
+		delete_transient( 'wpflatfiles_up_' . $id );
 		return Store::add_file( $st['folder_id'], $st['name'], $st['path'], array( 'mime' => $st['mime'], 'file_id' => $st['file_id'], 'note' => $st['note'], 'client_id' => (int) $client_id ) );
 	}
 
 	public static function abort( $upload_id ) {
 		$id = preg_replace( '/[^a-f0-9]/', '', (string) $upload_id );
-		$st = $id ? get_transient( 'bizyfiles_up_' . $id ) : false;
+		$st = $id ? get_transient( 'wpflatfiles_up_' . $id ) : false;
 		if ( is_array( $st ) && ! empty( $st['path'] ) ) {
 			@unlink( $st['path'] ); // phpcs:ignore WordPress.WP.AlternativeFunctions,WordPress.PHP.NoSilencedErrors
 		}
-		delete_transient( 'bizyfiles_up_' . $id );
+		delete_transient( 'wpflatfiles_up_' . $id );
 	}
 
 	/** Remove abandoned temp pieces (daily). */
